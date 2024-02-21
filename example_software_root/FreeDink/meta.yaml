@@ -1,0 +1,15 @@
+genre: RPG
+title: GNU FreeDink
+description: |
+  Free GNU RPG from 1993. 
+  The game centers on Dink, a pig farmer-turned-hero who embarks on various quests throughout his world.
+  The game features isometric, Diablo-like gameplay,[3] including weapons, items, and magic.
+  The game has a satirical off-color slant, including everything from a fiercely abusive uncle
+  to a town that worships ducks. Dink is never freed from the grievances of being a pig farmer,
+  a fact he is far too often reminded of by his nemesis, Milder Flatstomp. 
+dependencies:
+  - dummy_dep_1
+link_only: false
+extra_files:
+  dummy_file_1.txt: "%APP_DATA%/game_vault/"
+  dummy_dir_1: "%APP_DATA%/game_vault/"
