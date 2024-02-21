@@ -1,3 +1,6 @@
+import subprocess
+import os
+
 def _template_registry_file(template_file, game_path=None):
     '''Template the registry file before installation'''
     pass
@@ -9,6 +12,17 @@ def unpack_software(software_cache_path, target_path):
 def install_registry_file(registry_file, game_path=None):
     '''Install a given registy file'''
 
+    # test path: 
+    # ./example_software_root/FreeDink/registry_files/game_path_example_1.reg
+
+    # windows sucky sucky #
+    if not os.path.isabs(registry_file):
+        registry_file = os.path.join(os.getcwd(), registry_file)
+    p = subprocess.Popen(["python", "regedit.py", registry_file], 
+            subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    
+    print(p.communicate())
+    
 def install_extra_files(extra_files_list, path):
     '''Copy/Install extra gamedata to a give location'''
     pass
