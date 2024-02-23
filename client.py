@@ -2,35 +2,79 @@ import tkinter
 import customtkinter
 import PIL
 import data_backend
+import client_details
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
 
 app = customtkinter.CTk()
+
 app.geometry("720x780")
 last_geometry = app.winfo_geometry()
 app.title("Test")
 app.update()
 
-img = PIL.Image.open("test.jpg")
-img = img.resize((200, 300))
-img = PIL.ImageTk.PhotoImage(img)
-#img = PIL.ImageTk.PhotoImage(file="test.jpg")
-
 buttons = []
+
+def create_navbar():
+    '''Create basic navigation bar'''
+
+    # spawn frame at very top #
+    # add "Home" button
+
+def switch_to_main():
+    '''Switch back to main view from details'''
+
+    # destroy details elements #
+    for el in details_elements:
+        el.destory()
+
+    load_main()
 
 def switch_to_game_details(software):
     '''Switch to the details of the clicked tile'''
-    pass
+
+    destroy_main()
+    load_details(app, software)
+
+def load_main():
+    '''Load the main page overview'''
+
+    # create tiles from meta files #
+    for software in db.find_all_metadata():
+        print(software.title)
+        create_main_window_tile(software)
+
+    # set update listener & update positions #
+    app.bind("<Configure>", update_button_positions)
+    update_button_positions()
+
+def destroy_main():
+    '''Destroy all elements in the main view'''
+
+    app.unbind("<Configure>")
+    for b in buttons:
+        b.destroy()
+
+def load_details(app, software):
+    '''Load the details page for a software'''
+
+    details_elements = client_details.create_details_page(app, software)
 
 def create_main_window_tile(software):
     '''Create the main window tile'''
 
-    button = customtkinter.CTkButton(app, image=img, width=200, height=300,
-                                     command=lambda: switch_to_game_details(game),
-                                     border_width=0, corner_radius=0, border_spacing=0,
-                                     text="Test Title LOLOLOL",
-                                     fg_color="transparent", compound="top", anchor="s")
+    img = PIL.Image.open(software.get_thumbnail())
+    img = img.resize((200, 300))
+    img = PIL.ImageTk.PhotoImage(img)
+
+    button = customtkinter.CTkButton(app, image=img,
+                                        width=200, height=300,
+                                        command=lambda: switch_to_game_details(software),
+                                        border_width=0, corner_radius=0, border_spacing=0,
+                                        text=software.title,
+                                        fg_color="transparent", compound="top", anchor="s")
+    buttons.append(button)
     return button
 
 def update_button_positions(event=None):
@@ -66,18 +110,12 @@ def update_button_positions(event=None):
             button.grid(row=i // num_columns, column=i % num_columns, sticky="we")
 
 
-if __init__ == "__main__":
+if __name__ == "__main__":
 
     # define data backend #
     db = data_backend.LocalFS(None, None, "./cache", remote_root_dir="example_software_root")
 
-    # create tiles from meta files #
-    for software in db.find_all_metadata():
-        create_main_window_tile(software)
-
-    # set update listener & update positions #
-    app.bind("<Configure>", update_button_positions)
-    update_button_positions()
+    load_main()
 
     # run app #
     app.mainloop()

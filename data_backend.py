@@ -1,6 +1,7 @@
 import os
 import glob
 import yaml
+import software
 
 class DataBackend:
 
@@ -47,7 +48,6 @@ class LocalFS(DataBackend):
             if not os.path.isfile(meta_file):
                 continue
             else:
-                with open(meta_file) as f:
-                    meta_info_list.append(yaml.safe_load(f))
+                meta_info_list.append(software.Software(meta_file))
         
         return meta_info_list
