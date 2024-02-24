@@ -9,12 +9,13 @@ customtkinter.set_default_color_theme("blue")
 
 app = customtkinter.CTk()
 
-app.geometry("720x780")
+app.geometry("1000x750")
 last_geometry = app.winfo_geometry()
 app.title("Test")
 app.update()
 
 buttons = []
+details_elements = []
 
 def create_navbar():
     '''Create basic navigation bar'''
@@ -40,6 +41,8 @@ def switch_to_game_details(software):
 def load_main():
     '''Load the main page overview'''
 
+    app.title("Lan Vault: Overview")
+
     # create tiles from meta files #
     for software in db.find_all_metadata():
         print(software.title)
@@ -59,6 +62,7 @@ def destroy_main():
 def load_details(app, software):
     '''Load the details page for a software'''
 
+    app.title("Lan Vault: {}".format(software.title))
     details_elements = client_details.create_details_page(app, software)
 
 def create_main_window_tile(software):

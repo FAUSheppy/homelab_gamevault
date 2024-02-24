@@ -30,11 +30,14 @@ class DataBackend:
 class LocalFS(DataBackend):
 
     def get(self, path):
+
         fullpath = os.path.join(self.remote_root_dir, path)
         with open(fullpath, "rb") as f:
             target = os.path.join(self.cache_dir, os.path.basename(path))
             with open(target, "wb") as ft:
                 ft.write(f.read())
+
+        return target
     
     def list(self, path):
         fullpath = os.path.join(self.remote_root_dir, path)
