@@ -10,13 +10,16 @@ class DataBackend:
     def _create_cache_dir(self, cache_dir):
         os.makedirs(cache_dir, exist_ok=True)
 
-    def __init__(self, user, password, install_dir, server=None, remote_root_dir=None):
+    def __init__(self, user, password, install_dir, server=None, remote_root_dir=None,
+                    progress_bar=None, tkinter_root=None):
 
         self.user = user
         self.password = password
         self.remote_root_dir = remote_root_dir
         self.server = server
         self.install_dir = install_dir
+
+        self.pro
 
     def get(self, path, return_content=False):
         '''Return the contents of this path'''
@@ -130,15 +133,7 @@ class FTP(DataBackend):
             # run with callback #
             ftp.retrbinary('RETR ' + fullpath, callback)
 
-        with open(fullpath, "rb") as f:
-            print(cache_dir, path)
-            target = os.path.join(cache_dir, os.path.basename(path))
-            with open(target, "wb") as ft:
-                if return_content:
-                    return f.read()
-                ft.write(f.read())
-
-        return target
+        return local_file
     
     def list(self, path, fullpaths=False):
         
@@ -150,19 +145,29 @@ class FTP(DataBackend):
         if not os.path.isdir(fullpath):
             return []
 
-        if fullpaths:
-            return [ os.path.join(path, filename) for filename in os.listdir(fullpath)]
-        else:
-            return os.listdir(fullpath)
+        ftp = self._connect()
+        try:
+            paths = ftp.nlst(fullpath)
+            if not fullpaths:
+                return paths
+            return [ os.path.join(path, filename) for filename in paths ]
+        except ftplib.error_perm as e:
+            if str(e) == "550 No files found":
+                print("No files in this directory: {}".format(fullpath))
+                return []
+            else:
+                raise e
     
     def find_all_metadata(self):
         
-        meta_info_list = []
-        for software_dir in glob.iglob(self.remote_root_dir + "/*"):
-            meta_file = os.path.join(software_dir, "meta.yaml")
-            if not os.path.isfile(meta_file):
-                continue
-            else:
-                meta_info_list.append(software.Software(meta_file, self))
+        local_meta_file_list = []
+
+        root_elements = self.list(self.remote_root_dir)
+        for s in root_elements:
+            files = self.list(s, fullpaths=True)
+            for f in files:
+                if f.endswith("meta.yaml"):
+                    local_meta_file = self.get(meta_file)
+                    local_meta_file_list.append(local_meta_file)
         
-        return meta_info_list
+        return [ software.Software(meta_file, self) for meta_file in local_meta_file_list ]
