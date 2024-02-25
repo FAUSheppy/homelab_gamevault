@@ -9,7 +9,7 @@ customtkinter.set_default_color_theme("blue")
 
 app = customtkinter.CTk()
 
-app.geometry("1000x750")
+app.geometry("1030x750")
 last_geometry = app.winfo_geometry()
 app.title("Test")
 app.update()
@@ -26,10 +26,16 @@ def create_navbar():
 def switch_to_main():
     '''Switch back to main view from details'''
 
+    global details_elements
+    global last_geometry
+
+    last_geometry = (0,0)
+
     # destroy details elements #
     for el in details_elements:
-        el.destory()
+        el.destroy()
 
+    details_elements = []
     load_main()
 
 def switch_to_game_details(software):
@@ -48,21 +54,27 @@ def load_main():
         create_main_window_tile(software)
 
     # set update listener & update positions #
-    app.bind("<Configure>", update_button_positions)
     update_button_positions()
+    app.bind("<Configure>", update_button_positions)
 
 def destroy_main():
     '''Destroy all elements in the main view'''
 
+    global buttons
+
     app.unbind("<Configure>")
     for b in buttons:
         b.destroy()
+    
+    buttons = []
 
 def load_details(app, software):
     '''Load the details page for a software'''
 
+    global details_elements
+
     app.title("Lan Vault: {}".format(software.title))
-    details_elements = client_details.create_details_page(app, software)
+    details_elements = client_details.create_details_page(app, software, switch_to_main)
 
 def create_main_window_tile(software):
     '''Create the main window tile'''

@@ -2,6 +2,8 @@ import yaml
 import os
 import localaction
 import zipfile
+import shutil
+import pathlib
 
 class Software:
 
@@ -84,7 +86,13 @@ class Software:
             print("Running installer:", installer_path)
             localaction.run_exe(installer_path)
 
-        # TODO download & install gamefiles #
+        # install gamefiles #
+        if self.extra_files:
+            for src, dest in self.extra_files.items():
+                tmp = self.backend.get(os.path.join(self.directory, "extra_files", src), self.cache_dir)
+                dest_dir = os.path.expandvars(dest)
+                os.makedirs(dest_dir, exist_ok=True)
+                shutil.copy(tmp, dest_dir)
     
     def run(self):
         '''Run the configured exe for this software'''

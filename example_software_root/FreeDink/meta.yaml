@@ -11,6 +11,5 @@ dependencies:
   - DirectX 9.0c
 link_only: false
 extra_files:
-  dummy_file_1.txt: "%APP_DATA%/game_vault/"
-  dummy_dir_1: "%APP_DATA%/game_vault/"
+  dummy_file_1.txt: "%APPDATA%/game_vault/"
 run_exe: "GNUFreeDink/dink.exe"
