@@ -2,9 +2,25 @@ import PIL
 import tkinter
 import customtkinter
 
+
 def show_large_picture(app, path):
     '''Show a full-window version of the clicked picture'''
-    pass
+
+    if not path:
+        print("Genrated images cannot be enlarged.")
+        return
+
+    x = app.winfo_width()
+    y = app.winfo_height()
+
+    img = PIL.Image.open(path)
+    img = img.resize((x-2*30, y-2*30))
+    img = PIL.ImageTk.PhotoImage(img)
+
+    large_image = customtkinter.CTkButton(app, text="", image=img, width=x-2*30, height=y-2*30,
+                    fg_color="transparent", hover_color="black", corner_radius=0, border_width=0, border_spacing=0,
+                    command=lambda: large_image.destroy())
+    large_image.place(x=30, y=30)
 
 def create_details_page(app, software, backswitch_function):
     '''Create the details page for a software and return its elements for later destruction'''
@@ -12,15 +28,17 @@ def create_details_page(app, software, backswitch_function):
     elements = []
 
     if software.get_thumbnail():
-        img = PIL.Image.open(software.get_thumbnail())
+        path = software.get_thumbnail()
+        img = PIL.Image.open(path)
         img = img.resize((500, 700))
     else:
         img = PIL.Image.new('RGB', (500, 700))
+        path = None
 
     img = PIL.ImageTk.PhotoImage(img)
 
     # navbar #
-    navbar = customtkinter.CTkFrame(app)
+    navbar = customtkinter.CTkFrame(app, fg_color="transparent")
     navbar.grid(column=0, row=0, padx=10, pady=5, sticky="ew")
     back_button = customtkinter.CTkButton(navbar, text="Back", 
                                           command=backswitch_function)
@@ -31,8 +49,8 @@ def create_details_page(app, software, backswitch_function):
     # thumbnail image #
     thumbnail_image = customtkinter.CTkButton(app, text="", image=img, width=500, height=700,
                     fg_color="transparent", hover_color="black", corner_radius=0,
-                    command=lambda: show_large_picture(app, path))
-    thumbnail_image.grid(column=0, row=1, padx=10, pady=10)
+                    command=lambda path=path: show_large_picture(app, path))
+    thumbnail_image.grid(column=0, row=1, padx=10)
     elements.append(thumbnail_image)
 
     # fonts #
@@ -41,7 +59,7 @@ def create_details_page(app, software, backswitch_function):
 
     # info box #
     info_frame = customtkinter.CTkFrame(app, width=500)
-    info_frame.grid(column=1, row=1, sticky="nswe", padx=10, pady=10)
+    info_frame.grid(column=1, row=1, sticky="nswe", padx=10)
     elements.append(info_frame)
 
     # title #
@@ -117,7 +135,7 @@ def create_details_page(app, software, backswitch_function):
             img = PIL.Image.open(path)
             img = img.resize((180, 180))
             img = PIL.ImageTk.PhotoImage(img)
-            extra_pic_button = customtkinter.CTkButton(picture_frame, text="", image=img, command=lambda: show_large_picture(app, path),
+            extra_pic_button = customtkinter.CTkButton(picture_frame, text="", image=img, command=lambda path=path: show_large_picture(app, path),
                                      hover_color="black", corner_radius=0,)
             extra_pic_button.configure(fg_color="transparent")
             extra_pic_button.grid(pady=10, row=0, column=i)
