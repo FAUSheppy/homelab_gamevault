@@ -45,7 +45,6 @@ def load_main():
 
     # create tiles from meta files #
     for software in db.find_all_metadata():
-        print(software.title)
         create_main_window_tile(software)
 
     # set update listener & update positions #
@@ -68,10 +67,13 @@ def load_details(app, software):
 def create_main_window_tile(software):
     '''Create the main window tile'''
 
-    img = PIL.Image.open(software.get_thumbnail())
-    img = img.resize((200, 300))
-    img = PIL.ImageTk.PhotoImage(img)
+    if software.get_thumbnail():
+        img = PIL.Image.open(software.get_thumbnail())
+        img = img.resize((200, 300))
+    else:
+        img = PIL.Image.new('RGB', (200, 300))
 
+    img = PIL.ImageTk.PhotoImage(img)
     button = customtkinter.CTkButton(app, image=img,
                                         width=200, height=300,
                                         command=lambda: switch_to_game_details(software),
@@ -117,7 +119,7 @@ def update_button_positions(event=None):
 if __name__ == "__main__":
 
     # define data backend #
-    db = data_backend.LocalFS(None, None, "./cache", remote_root_dir="example_software_root")
+    db = data_backend.LocalFS(None, None, "./install/", remote_root_dir="example_software_root")
 
     load_main()
 

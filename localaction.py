@@ -27,9 +27,22 @@ def install_extra_files(extra_files_list, path):
     '''Copy/Install extra gamedata to a give location'''
     pass
 
-def launch_software(path, synchronous=False):
+def run_exe(path, synchronous=False):
     '''Launches a given software'''
-    pass
+
+    if synchronous:
+        raise NotImplementedError("SYNC not yet implemented")
+
+    print("Executing:", path)
+    try:
+        subprocess.Popen(path)
+    except OSError as e:
+        if "WinError 740" in str(e):
+            p = subprocess.Popen(["python", "adminrun.py", path], 
+                subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            print(p.communicate())
+        else:
+            raise e
 
 def remove_software(path):
     '''Remove a software at the target location'''

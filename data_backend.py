@@ -5,20 +5,20 @@ import software
 
 class DataBackend:
 
-    def __init__(self, user, password, cache_dir, remote_root_dir=None):
+    def _create_cache_dir(self, cache_dir):
+        os.makedirs(cache_dir, exist_ok=True)
+
+    def __init__(self, user, password, install_dir, remote_root_dir=None):
 
         self.user = user
         self.password = password
-        self.cache_dir = cache_dir
         self.remote_root_dir = remote_root_dir
+        self.install_dir = install_dir
 
-        if not os.path.isdir(self.cache_dir):
-            os.mkdir(self.cache_dir)
-
-    def get(self, path):
+    def get(self, path, return_content=False):
         '''Return the contents of this path'''
         raise NotImplementedError()
-    
+
     def list(self, path):
         '''List the contents of this path'''
         raise NotImplementedError()
@@ -29,19 +29,44 @@ class DataBackend:
 
 class LocalFS(DataBackend):
 
-    def get(self, path):
+    def get(self, path, cache_dir=None, return_content=False):
 
-        fullpath = os.path.join(self.remote_root_dir, path)
+        # check the load cache dir #
+        if cache_dir:
+            self._create_cache_dir(cache_dir)
+        elif not cache_dir and not return_content:
+            AssertionError("Need to set either cache_dir or return_content!")
+
+        # prepend root dir if not given #
+        fullpath = path
+        if self.remote_root_dir and not path.startswith(self.remote_root_dir):
+            fullpath = os.path.join(self.remote_root_dir, path)
+        
+        # load the file on remote #
         with open(fullpath, "rb") as f:
-            target = os.path.join(self.cache_dir, os.path.basename(path))
+            print(cache_dir, path)
+            target = os.path.join(cache_dir, os.path.basename(path))
             with open(target, "wb") as ft:
+                if return_content:
+                    return f.read()
                 ft.write(f.read())
 
         return target
     
-    def list(self, path):
-        fullpath = os.path.join(self.remote_root_dir, path)
-        return os.listdir(fullpath)
+    def list(self, path, fullpaths=False):
+        
+        # prepend root dir if not given #
+        fullpath = path
+        if self.remote_root_dir and not path.startswith(self.remote_root_dir):
+            fullpath = os.path.join(self.remote_root_dir, path)
+
+        if not os.path.isdir(fullpath):
+            return []
+
+        if fullpaths:
+            return [ os.path.join(path, filename) for filename in os.listdir(fullpath)]
+        else:
+            return os.listdir(fullpath)
     
     def find_all_metadata(self):
         
@@ -51,6 +76,6 @@ class LocalFS(DataBackend):
             if not os.path.isfile(meta_file):
                 continue
             else:
-                meta_info_list.append(software.Software(meta_file))
+                meta_info_list.append(software.Software(meta_file, self))
         
         return meta_info_list

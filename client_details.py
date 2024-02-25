@@ -11,8 +11,12 @@ def create_details_page(app, software):
 
     elements = []
 
-    img = PIL.Image.open(software.get_thumbnail())
-    img = img.resize((200, 300))
+    if software.get_thumbnail():
+        img = PIL.Image.open(software.get_thumbnail())
+        img = img.resize((200, 300))
+    else:
+        img = PIL.Image.new('RGB', (200, 300))
+
     img = PIL.ImageTk.PhotoImage(img)
 
     # thumbnail image #
@@ -48,26 +52,32 @@ def create_details_page(app, software):
     elements.append(description)
 
     # dependencies #
-    dependencies_text = ",".join(software.dependencies)
-    dependencies = customtkinter.CTkLabel(info_frame, text=dependencies_text)
-    dependencies.pack(anchor="w", side="top", padx=20)
-    elements.append(dependencies)
+    if software.dependencies:
+        dependencies_text = ",".join(software.dependencies)
+        dependencies = customtkinter.CTkLabel(info_frame, text=dependencies_text)
+        dependencies.pack(anchor="w", side="top", padx=20)
+        elements.append(dependencies)
 
     # buttons #
     install_button = customtkinter.CTkButton(info_frame, text="Install",
-                        command=lambda: software.install(software))
+                        command=lambda: software.install())
     remove_button = customtkinter.CTkButton(info_frame, text="Remove",
-                        command=lambda: software.remove(software))
+                        command=lambda: software.remove())
+    if software.run_exe:
+        run_button = customtkinter.CTkButton(info_frame, text="Run",
+                        command=lambda: software.run())
+        run_button.pack(padx=10, pady=30, anchor="sw", side="left")
+        elements.append(run_button)
 
-    install_button.pack(padx=20, pady=30, anchor="sw", side="left")
-    remove_button.pack(padx=20, pady=30, anchor="sw", side="left")
+    install_button.pack(padx=10, pady=30, anchor="sw", side="left")
+    remove_button.pack(padx=10, pady=30, anchor="sw", side="left")
     elements.append(install_button)
     elements.append(remove_button)
 
     # add other pictures #
     i = 0
     for path in software.pictures[1:]:
-        img = PIL.Image.open(software.get_thumbnail())
+        img = PIL.Image.open(path)
         img = img.resize((200, 300))
         img = PIL.ImageTk.PhotoImage(img)
         extra_pic_button = customtkinter.CTkButton(app, text="", image=img, width=200, height=300,

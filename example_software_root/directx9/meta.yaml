@@ -1,0 +1,8 @@
+genre: System Tools
+title: DirectX 9.0c
+description: >
+  The last official DirectX9 driver, needed for various games.
+dependencies:
+link_only: false
+extra_files:
+installer: DX/DXSETUP.exe

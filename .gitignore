@@ -1,3 +1,5 @@
 *.zip
 *.swp
 __pycache__/
+cache/
+install/

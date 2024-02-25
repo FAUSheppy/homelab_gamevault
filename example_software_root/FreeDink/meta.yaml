@@ -8,8 +8,9 @@ description: >
   to a town that worships ducks. Dink is never freed from the grievances of being a pig farmer,
   a fact he is far too often reminded of by his nemesis, Milder Flatstomp. 
 dependencies:
-  - dummy_dep_1
+  - DirectX 9.0c
 link_only: false
 extra_files:
   dummy_file_1.txt: "%APP_DATA%/game_vault/"
   dummy_dir_1: "%APP_DATA%/game_vault/"
+run_exe: "GNUFreeDink/dink.exe"
