@@ -9,7 +9,7 @@ customtkinter.set_default_color_theme("blue")
 
 app = customtkinter.CTk()
 
-app.geometry("1030x750")
+app.geometry("1030x770")
 last_geometry = app.winfo_geometry()
 app.title("Test")
 app.update()
