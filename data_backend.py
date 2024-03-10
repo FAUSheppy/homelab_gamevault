@@ -88,8 +88,10 @@ class LocalFS(DataBackend):
 
 class FTP(DataBackend):
 
-    def _connect(self):
+    paths_listed = {}
 
+    def _connect(self):
+        print("Called connect")
         if self.server.startswith("ftp://"):
             tls = False
         elif self.server.startswith("ftps://"):
@@ -121,7 +123,7 @@ class FTP(DataBackend):
             ftp.login()
 
         return ftp
-    
+
 
     def get(self, path, cache_dir=None, return_content=False):
 
@@ -137,33 +139,35 @@ class FTP(DataBackend):
             fullpath = os.path.join(self.remote_root_dir, path)
             #print(self.remote_root_dir, path, fullpath)
         fullpath = fullpath.replace("\\", "/")
-        
-        ftp = self._connect()
-        ftp.sendcmd('TYPE I')
-
-        # load the file on remote #
-        total_size = ftp.size(fullpath)
         local_file = os.path.join(cache_dir, os.path.basename(path))
-        self.progress_bar["maximum"] = total_size
+        
+        if not os.path.isfile(local_file):
+            ftp = self._connect()
+            ftp.sendcmd('TYPE I')
 
-        with open(local_file, "w") as f:
-            f.write(local_file)
-        with open(local_file, 'wb') as local_file_open, tqdm.tqdm(
-            desc="Downloading", 
-            total=total_size, 
-            unit='B', 
-            unit_scale=True
-        ) as cmd_progress_bar:
-            
-            # Define a callback function to update the progress bar #
-            def callback(data):
-                local_file_open.write(data)
-                self.root.update_idletasks() # Update the GUI
-                self.progress_bar.set(self.progress_bar.get() + len(data))
-                cmd_progress_bar.update(len(data))
+            # load the file on remote #
+            total_size = ftp.size(fullpath)
+            self.progress_bar["maximum"] = total_size
 
-            # run with callback #
-            ftp.retrbinary('RETR ' + fullpath, callback)
+            print(local_file, "not in cache, retriving..")
+            with open(local_file, "w") as f:
+                f.write(local_file)
+            with open(local_file, 'wb') as local_file_open, tqdm.tqdm(
+                desc="Downloading", 
+                total=total_size, 
+                unit='B', 
+                unit_scale=True
+            ) as cmd_progress_bar:
+                
+                # Define a callback function to update the progress bar #
+                def callback(data):
+                    local_file_open.write(data)
+                    self.root.update_idletasks() # Update the GUI
+                    self.progress_bar.set(self.progress_bar.get() + len(data))
+                    cmd_progress_bar.update(len(data))
+
+                # run with callback #
+                ftp.retrbinary('RETR ' + fullpath, callback)
         
         if return_content:
             with open(local_file, encoding="utf-8") as fr:
@@ -178,14 +182,22 @@ class FTP(DataBackend):
         if self.remote_root_dir and not path.startswith(self.remote_root_dir):
             fullpath = os.path.join(self.remote_root_dir, path)
         fullpath = fullpath.replace("\\", "/")
-        print(fullpath)
+        #print(fullpath)
 
         # if not os.path.isdir(fullpath):
         #     return []
 
-        ftp = self._connect()
         try:
-            paths = ftp.nlst(fullpath)
+            # retrieve session cached paths #
+            if fullpath in self.paths_listed:
+                paths = self.paths_listed[fullpath]
+                #print("Retrieved paths from cache:", fullpath, paths)
+            else:
+                ftp = self._connect()
+                self.paths_listed.update({fullpath: []}) # in case dir does not exit
+                paths = ftp.nlst(fullpath)
+                self.paths_listed.update({fullpath: paths})
+
             if not fullpaths:
                 return paths
             return [ os.path.join(path, filename).replace("\\", "/") for filename in paths ]
@@ -205,13 +217,13 @@ class FTP(DataBackend):
 
         root_elements = self.list(self.remote_root_dir)
         for s in root_elements:
-            print(s)
+            #print(s)
             files = self.list(s, fullpaths=True)
-            print(files)
+            #print(files)
             for f in files:
                 if f.endswith("meta.yaml"):
                     meta_file_content = self.get(f, cache_dir="cache", return_content=True)
-                    print(meta_file_content)
+                    #print(meta_file_content)
                     local_meta_file_list.append(f)
         
         return [ software.Software(meta_file, self) for meta_file in local_meta_file_list ]
