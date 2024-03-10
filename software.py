@@ -12,6 +12,7 @@ class Software:
         self.meta_file = meta_file
         self.directory = os.path.dirname(meta_file)
         self.backend = backend
+        # print(self.directory)
         self.cache_dir = os.path.join("cache", self.directory)
         self._load_from_yaml()
 
@@ -59,7 +60,12 @@ class Software:
         print("Installing:", self.title, self.directory)
 
         path = os.path.join(self.directory, "main_dir")
-        remote_file = self.backend.list(path, fullpaths=True)[0]
+        
+        try:
+            remote_file = self.backend.list(path, fullpaths=True)[0]
+        except IndexError:
+            print("No main_dir:", path)
+            raise AssertionError("No main_dir for this software")
         local_file = self.backend.get(remote_file, self.cache_dir)
 
         # execute or unpack #

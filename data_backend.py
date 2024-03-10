@@ -18,8 +18,8 @@ class DataBackend:
         self.remote_root_dir = remote_root_dir
         self.server = server
         self.install_dir = install_dir
-
-        self.pro
+        self.progress_bar=progress_bar
+        self.root = tkinter_root
 
     def get(self, path, return_content=False):
         '''Return the contents of this path'''
@@ -91,9 +91,29 @@ class FTP(DataBackend):
     def _connect(self):
 
         if self.server.startswith("ftp://"):
-            ftp = ftplib.FTP(self.server)
+            tls = False
         elif self.server.startswith("ftps://"):
-            ftp = ftplib.FTP_TLS(self.server)
+            tls = True
+        else:
+            raise ValueError("FTP Server must start with ftp:// or ftps://")
+
+        # build connection parameters #
+        server = self.server.split("://")[1]
+        port = None
+        try:
+            port = int(server.split(":")[-1])
+            server = server.split(":")[0]
+        except (IndexError, ValueError):
+            server = self.server
+        
+        #print("Connectiong to:", server, "on port:", port)
+
+        # connect #
+        if not tls:
+            ftp = ftplib.FTP()
+        else:
+            ftp = ftplib.FTP_TLS()
+        ftp.connect(server, port=port)
 
         if self.user:
             ftp.login(self.user, self.password)
@@ -105,33 +125,49 @@ class FTP(DataBackend):
 
     def get(self, path, cache_dir=None, return_content=False):
 
+        # check the load cache dir #
+        if cache_dir:
+            self._create_cache_dir(cache_dir)
+        elif not cache_dir and not return_content:
+            AssertionError("Need to set either cache_dir or return_content!")
+
         # prepend root dir if not given #
         fullpath = path
         if self.remote_root_dir and not path.startswith(self.remote_root_dir):
             fullpath = os.path.join(self.remote_root_dir, path)
+            #print(self.remote_root_dir, path, fullpath)
+        fullpath = fullpath.replace("\\", "/")
         
         ftp = self._connect()
+        ftp.sendcmd('TYPE I')
 
         # load the file on remote #
         total_size = ftp.size(fullpath)
         local_file = os.path.join(cache_dir, os.path.basename(path))
         self.progress_bar["maximum"] = total_size
 
-        with open(local_file, 'wb') as local_file, tqdm(
+        with open(local_file, "w") as f:
+            f.write(local_file)
+        with open(local_file, 'wb') as local_file_open, tqdm.tqdm(
             desc="Downloading", 
             total=total_size, 
             unit='B', 
             unit_scale=True
-        ) as progress_bar:
+        ) as cmd_progress_bar:
             
             # Define a callback function to update the progress bar #
             def callback(data):
-                local_file.write(data)
+                local_file_open.write(data)
                 self.root.update_idletasks() # Update the GUI
-                self.progress_bar.step(len(data))
+                self.progress_bar.set(self.progress_bar.get() + len(data))
+                cmd_progress_bar.update(len(data))
 
             # run with callback #
             ftp.retrbinary('RETR ' + fullpath, callback)
+        
+        if return_content:
+            with open(local_file, encoding="utf-8") as fr:
+                return fr.read()
 
         return local_file
     
@@ -141,19 +177,24 @@ class FTP(DataBackend):
         fullpath = path
         if self.remote_root_dir and not path.startswith(self.remote_root_dir):
             fullpath = os.path.join(self.remote_root_dir, path)
+        fullpath = fullpath.replace("\\", "/")
+        print(fullpath)
 
-        if not os.path.isdir(fullpath):
-            return []
+        # if not os.path.isdir(fullpath):
+        #     return []
 
         ftp = self._connect()
         try:
             paths = ftp.nlst(fullpath)
             if not fullpaths:
                 return paths
-            return [ os.path.join(path, filename) for filename in paths ]
+            return [ os.path.join(path, filename).replace("\\", "/") for filename in paths ]
         except ftplib.error_perm as e:
-            if str(e) == "550 No files found":
+            if "550 No files found" in str(e):
                 print("No files in this directory: {}".format(fullpath))
+                return []
+            elif "550 No such file or directory" in str(e):
+                print("File or dir does not exist: {}".format(fullpath))
                 return []
             else:
                 raise e
@@ -164,10 +205,13 @@ class FTP(DataBackend):
 
         root_elements = self.list(self.remote_root_dir)
         for s in root_elements:
+            print(s)
             files = self.list(s, fullpaths=True)
+            print(files)
             for f in files:
                 if f.endswith("meta.yaml"):
-                    local_meta_file = self.get(meta_file)
-                    local_meta_file_list.append(local_meta_file)
+                    meta_file_content = self.get(f, cache_dir="cache", return_content=True)
+                    print(meta_file_content)
+                    local_meta_file_list.append(f)
         
         return [ software.Software(meta_file, self) for meta_file in local_meta_file_list ]

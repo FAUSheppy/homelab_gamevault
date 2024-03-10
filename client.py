@@ -130,8 +130,11 @@ def update_button_positions(event=None):
 
 if __name__ == "__main__":
 
+    progressbar = customtkinter.CTkProgressBar(master=app)
     # define data backend #
-    db = data_backend.LocalFS(None, None, "./install/", remote_root_dir="example_software_root")
+    #db = data_backend.LocalFS(None, None, "./install/", remote_root_dir="example_software_root")
+    db = data_backend.FTP(None, None, "./install/", server="ftp://192.168.1.132:2121",
+                            remote_root_dir="/", progress_bar=progressbar, tkinter_root=app)
 
     load_main()
 
