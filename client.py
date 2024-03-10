@@ -1,8 +1,8 @@
-import tkinter
 import customtkinter
 import PIL
 import data_backend
 import client_details
+import pgwrapper
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
@@ -130,11 +130,12 @@ def update_button_positions(event=None):
 
 if __name__ == "__main__":
 
-    progressbar = customtkinter.CTkProgressBar(master=app)
+    pgw = pgwrapper.ProgressBarWrapper()
+    pgw.new(app)
     # define data backend #
     #db = data_backend.LocalFS(None, None, "./install/", remote_root_dir="example_software_root")
     db = data_backend.FTP(None, None, "./install/", server="ftp://192.168.1.132:2121",
-                            remote_root_dir="/", progress_bar=progressbar, tkinter_root=app)
+                            remote_root_dir="/", progress_bar_wrapper=pgw, tkinter_root=app)
 
     load_main()
 

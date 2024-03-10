@@ -4,10 +4,11 @@ import localaction
 import zipfile
 import shutil
 import pathlib
+import tqdm
 
 class Software:
 
-    def __init__(self, meta_file, backend):
+    def __init__(self, meta_file, backend, progress_bar_wrapper):
 
         self.meta_file = meta_file
         self.directory = os.path.dirname(meta_file)
@@ -15,6 +16,7 @@ class Software:
         # print(self.directory)
         self.cache_dir = os.path.join("cache", self.directory)
         self._load_from_yaml()
+        self.progress_bar_wrapper = progress_bar_wrapper
 
     def _load_from_yaml(self):
 
@@ -52,7 +54,18 @@ class Software:
         os.makedirs(software_path, exist_ok=True)
 
         with zipfile.ZipFile(cache_src, 'r') as zip_ref:
-            zip_ref.extractall(software_path)
+            
+            total_count = zip_ref.infolist()
+            count = 0
+            for member in tqdm.tqdm(total_count, desc='Extracting '):
+                try:
+                    zip_ref.extract(member, software_path)
+                    count += 1
+                    self.progress_bar_wrapper.get_pb().set(count/len(total_count))
+                    self.progress_bar_wrapper.get_pb().update_idletasks()
+                except zipfile.error as e:
+                    pass # TODO ???
+            #zip_ref.extractall(software_path)
 
     def install(self):
         '''Install this software from the backend'''

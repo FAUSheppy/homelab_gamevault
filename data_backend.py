@@ -11,14 +11,14 @@ class DataBackend:
         os.makedirs(cache_dir, exist_ok=True)
 
     def __init__(self, user, password, install_dir, server=None, remote_root_dir=None,
-                    progress_bar=None, tkinter_root=None):
+                    progress_bar_wrapper=None, tkinter_root=None):
 
         self.user = user
         self.password = password
         self.remote_root_dir = remote_root_dir
         self.server = server
         self.install_dir = install_dir
-        self.progress_bar=progress_bar
+        self.progress_bar_wrapper = progress_bar_wrapper
         self.root = tkinter_root
 
     def get(self, path, return_content=False):
@@ -147,7 +147,7 @@ class FTP(DataBackend):
 
             # load the file on remote #
             total_size = ftp.size(fullpath)
-            self.progress_bar["maximum"] = total_size
+            self.progress_bar_wrapper.get_pb()["maximum"] = total_size
 
             print(local_file, "not in cache, retriving..")
             with open(local_file, "w") as f:
@@ -158,12 +158,13 @@ class FTP(DataBackend):
                 unit='B', 
                 unit_scale=True
             ) as cmd_progress_bar:
-                
+
                 # Define a callback function to update the progress bar #
                 def callback(data):
                     local_file_open.write(data)
                     self.root.update_idletasks() # Update the GUI
-                    self.progress_bar.set(self.progress_bar.get() + len(data))
+                    self.progress_bar_wrapper.get_pb().set(
+                        self.progress_bar_wrapper.get_pb().get() + len(data))
                     cmd_progress_bar.update(len(data))
 
                 # run with callback #
@@ -226,4 +227,5 @@ class FTP(DataBackend):
                     #print(meta_file_content)
                     local_meta_file_list.append(f)
         
-        return [ software.Software(meta_file, self) for meta_file in local_meta_file_list ]
+        return [ software.Software(meta_file, self, self.progress_bar_wrapper) 
+                    for meta_file in local_meta_file_list ]

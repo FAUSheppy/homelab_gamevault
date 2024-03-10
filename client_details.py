@@ -37,14 +37,17 @@ def create_details_page(app, software, backswitch_function):
 
     img = PIL.ImageTk.PhotoImage(img)
 
-    # navbar #
+    # navbar & progress bar #
     navbar = customtkinter.CTkFrame(app, fg_color="transparent")
     navbar.grid(column=0, row=0, padx=10, pady=5, sticky="ew")
     back_button = customtkinter.CTkButton(navbar, text="Back", 
                                           command=backswitch_function)
     back_button.pack(anchor="nw", side="left")
+    progress_bar = software.progress_bar_wrapper.new(navbar)
+    progress_bar.pack(anchor="nw", side="left")
     elements.append(navbar)
     elements.append(back_button)
+    elements.append(progress_bar)
 
     # thumbnail image #
     thumbnail_image = customtkinter.CTkButton(app, text="", image=img, width=500, height=700,
