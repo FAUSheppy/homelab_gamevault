@@ -5,4 +5,4 @@ You can download the GNU GPL Licensed game "FreeDink" from [here](https://nextcl
 - check local cache before loading from remote
 - better image resizing, prevent stretching etc.
 - async load from remote, currently the who GUI blocks during the loading process
-- unpacking progresss
+- unpacking progress
