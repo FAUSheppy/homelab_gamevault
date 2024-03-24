@@ -91,7 +91,7 @@ class FTP(DataBackend):
     paths_listed = {}
 
     def _connect(self):
-        print("Called connect")
+
         if self.server.startswith("ftp://"):
             tls = False
         elif self.server.startswith("ftps://"):
