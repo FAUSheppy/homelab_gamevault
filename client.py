@@ -186,7 +186,8 @@ def create_main_window_tile(software):
 
     if software.get_thumbnail():
         img = PIL.Image.open(software.get_thumbnail())
-        img = img.resize((200, 300))
+        img = imagetools.smart_resize(img, 200, 300)
+        #img = img.resize((200, 300))
     else:
         img = PIL.Image.new('RGB', (200, 300))
 

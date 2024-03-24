@@ -1,6 +1,7 @@
 import PIL
 import tkinter
 import customtkinter
+import imagetools
 
 
 def show_large_picture(app, path):
@@ -14,7 +15,7 @@ def show_large_picture(app, path):
     y = app.winfo_height()
 
     img = PIL.Image.open(path)
-    img = img.resize((x-2*30, y-2*30))
+    img = imagetools.smart_resize(img, x-2*30, y-2*30)
     img = PIL.ImageTk.PhotoImage(img)
 
     large_image = customtkinter.CTkButton(app, text="", image=img, width=x-2*30, height=y-2*30,
@@ -30,7 +31,7 @@ def create_details_page(app, software, backswitch_function):
     if software.get_thumbnail():
         path = software.get_thumbnail()
         img = PIL.Image.open(path)
-        img = img.resize((500, 700))
+        img = imagetools.smart_resize(img, 500, 700)
     else:
         img = PIL.Image.new('RGB', (500, 700))
         path = None
@@ -136,7 +137,7 @@ def create_details_page(app, software, backswitch_function):
         i = 0
         for path in software.pictures[1:]:
             img = PIL.Image.open(path)
-            img = img.resize((180, 180))
+            img = imagetools.smart_resize(img, 180, 180)
             img = PIL.ImageTk.PhotoImage(img)
             extra_pic_button = customtkinter.CTkButton(picture_frame, text="", image=img, command=lambda path=path: show_large_picture(app, path),
                                      hover_color="black", corner_radius=0,)
