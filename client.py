@@ -4,6 +4,10 @@ import data_backend
 import client_details
 import pgwrapper
 import sys
+import json
+import os
+import cache_utils
+import imagetools
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
@@ -144,8 +148,15 @@ def load_main():
     app.title("Lan Vault: Overview")
 
     # create tiles from meta files #
+    cache_dir_size = 0
     for software in db.find_all_metadata():
         create_main_window_tile(software)
+
+        # retrieve cache dir from any software #
+        if not cache_dir_size:
+            cache_dir_size = cache_utils.get_cache_size()
+            label = customtkinter.CTkLabel(app, text="Cache Size: {:.2f} GB".format(cache_dir_size))
+            label.grid(row=0, column=0)
 
     # set update listener & update positions #
     update_button_positions()
