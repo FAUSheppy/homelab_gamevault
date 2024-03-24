@@ -22,10 +22,26 @@ details_elements = []
 
 non_disabled_entry_color = None
 
+CONFIG_FILE = "gamevault_config.json"
+
 def close_input_window(input_window):
-    # Placeholder function for the button action
-    print("Closing input window")
+    '''Close the config window and save the settings'''
+
+    # retrieve values #
+    entries = list(filter(lambda x: isinstance(x, customtkinter.CTkEntry), input_window.winfo_children()))
+    labels = [ input_window.grid_slaves(row=e.grid_info()["row"], column=e.grid_info()["column"]-1)[0] for e in entries ]
+    ret_dict = dict()
+    for e, l in zip(entries, labels):
+        ret_dict.update({ l.cget("text") : e.get() })
+
+    # dump config and write to file #
+    print(json.dumps(ret_dict))
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(ret_dict, f)
+
+    # quit input window #
     input_window.quit()
+
 
 def dropdown_changed(dropdown_var, user_entry, password_entry, server_path_entry,
                      install_dir_entry):
@@ -172,6 +188,7 @@ def destroy_main():
         b.destroy()
     
     buttons = []
+    app.update()
 
 def load_details(app, software):
     '''Load the details page for a software'''
@@ -231,7 +248,8 @@ def update_button_positions(event=None):
                     and grid_info_current["column"] == column_new):
             continue
         else:
-            button.grid(row=i // num_columns, column=i % num_columns, sticky="we")
+            DOWNSHIFT = 1 # FIXME make real navbar
+            button.grid(row=(i // num_columns)+ DOWNSHIFT, column=i % num_columns, sticky="we")
 
 
 if __name__ == "__main__":
@@ -243,11 +261,12 @@ if __name__ == "__main__":
     db = data_backend.FTP(None, None, "./install/", server="ftp://192.168.1.132:2121",
                             remote_root_dir="/", progress_bar_wrapper=pgw, tkinter_root=app) # TODO load values instead of hardcode
 
-    get_config_inputs() # TODO save values
+    if not os.path.isfile(CONFIG_FILE):
+        get_config_inputs()
 
     # geometry is set at the very beginning #
     app.update()
 
     # fill and run app #
-    load_main() # TODO add button to reopen config # TODO add button to purge cache/purge cache window # TODO show cache size # TODO show game size on remote
+    load_main() # TODO add button to reopen config # TODO add button to purge cache/purge cache window # TODO show game size on remote
     app.mainloop()
