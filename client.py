@@ -22,6 +22,8 @@ details_elements = []
 
 non_disabled_entry_color = None
 
+db = None # app data-backend (i.e. LocalFS or FTP)
+
 CONFIG_FILE = "gamevault_config.json"
 
 def close_input_window(input_window):
@@ -256,13 +258,35 @@ if __name__ == "__main__":
 
     pgw = pgwrapper.ProgressBarWrapper()
     pgw.new(app)
+
     # define data backend #
     #db = data_backend.LocalFS(None, None, "./install/", remote_root_dir="example_software_root")
-    db = data_backend.FTP(None, None, "./install/", server="ftp://192.168.1.132:2121",
-                            remote_root_dir="/", progress_bar_wrapper=pgw, tkinter_root=app) # TODO load values instead of hardcode
+    # db = data_backend.FTP(None, None, "./install/", server="ftp://192.168.1.132:2121",
+    #                     remote_root_dir="/", progress_bar_wrapper=pgw, tkinter_root=app)
 
     if not os.path.isfile(CONFIG_FILE):
         get_config_inputs()
+
+    # load config #
+    with open(CONFIG_FILE) as f:
+
+        config_loaded = json.load(f)
+
+        # load login & install dir #
+        user = config_loaded.get("User:")
+        password = config_loaded.get("Password:")
+        install_dir = config_loaded["Install dir:"]
+
+        # get the secod part of the server string, then split once at first / to get path and prepend / again#
+        remote_root_dir = "/" + config_loaded["Server/Path:"].split("://")[1].split("/", 1)[1]
+        server = config_loaded["Server/Path:"][:-len(remote_root_dir)]
+
+        # debug output #
+        print(user, password, install_dir, remote_root_dir, server, config_loaded["Server/Path:"])
+
+        # add db backend #
+        db = data_backend.FTP(user, password, install_dir, server=server,
+                remote_root_dir=remote_root_dir, progress_bar_wrapper=pgw, tkinter_root=app)
 
     # geometry is set at the very beginning #
     app.update()
