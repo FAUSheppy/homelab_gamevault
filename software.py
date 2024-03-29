@@ -5,6 +5,7 @@ import zipfile
 import shutil
 import pathlib
 import tqdm
+import webbrowser
 
 class Software:
 
@@ -72,6 +73,11 @@ class Software:
 
         print("Installing:", self.title, self.directory)
 
+        # handle link-only software #
+        if self.link_only:
+            webbrowser.open(self.link_only)
+            return
+
         path = os.path.join(self.directory, "main_dir")
         
         try:
@@ -115,5 +121,12 @@ class Software:
     
     def run(self):
         '''Run the configured exe for this software'''
+
+        print(self.run_exe, self.link_only)
+        if self.run_exe == "steam" and "steam://" in self.link_only:
+            print("steam://runid/{}".format(self.link_only.split("/")[-1]))
+            webbrowser.open("steam://rungameid/{}".format(self.link_only.split("/")[-1]))
+            return
+
         if self.run_exe:
             localaction.run_exe(os.path.join(self.backend.install_dir, self.title, self.run_exe)) 

@@ -109,23 +109,46 @@ def create_details_page(app, software, backswitch_function):
     button_frame = customtkinter.CTkFrame(info_frame, fg_color="transparent")
     button_frame.grid(column=0, row=6, sticky="w")
     elements.append(button_frame)
-    install_button = customtkinter.CTkButton(button_frame, text="Install",
+
+    if software.link_only and "steam" in software.link_only:
+        install_text = "Open Steam"
+        remove_text = "Remove from Steam"
+    elif software.link_only:
+        install_text = "Open in Browser"
+        remove_text = "Remove Manually"
+    else:
+        install_text = "Install"
+        remove_text = "Remove"
+
+    install_button = customtkinter.CTkButton(button_frame, text=install_text,
                         command=lambda: software.install())
-    remove_button = customtkinter.CTkButton(button_frame, text="Remove",
-                        command=lambda: software.remove())
+
+    # add remove button #
+    remove_button = customtkinter.CTkButton(button_frame, text=remove_text,
+                    command=lambda: software.remove())
+
+    if remove_text != "Remove":
+        remove_button.configure(state=tkinter.DISABLED)
+        remove_button.configure(fg_color="gray")
+
+    remove_button.pack(padx=10, pady=15, anchor="sw", side="left")
+
 
     # run button #
     run_button = customtkinter.CTkButton(button_frame, text="Run",
                     command=lambda: software.run())
     run_button.pack(padx=10, pady=15, anchor="sw", side="left")
-    elements.append(run_button)
+
+    # install button #
     if not software.run_exe:
         run_button.configure(state=tkinter.DISABLED)
         run_button.configure(fg_color="gray")
 
     install_button.pack(padx=10, pady=15, anchor="sw", side="left")
-    remove_button.pack(padx=10, pady=15, anchor="sw", side="left")
+
+    # add buttons #
     elements.append(install_button)
+    elements.append(run_button)
     elements.append(remove_button)
 
     # add other pictures #
