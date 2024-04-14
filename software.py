@@ -14,9 +14,17 @@ class Software:
         self.meta_file = meta_file
         self.directory = os.path.dirname(meta_file)
         self.backend = backend
-        # print(self.directory)
-        self.cache_dir = os.path.join("cache", self.directory)
-        self._load_from_yaml()
+        print("Software Directory:", self.directory)
+
+        self.cache_dir = backend.cache_dir or os.path.join("cache", self.directory)
+
+        # return None instead of the object if yaml failed #
+        try:
+            self.invalid = False
+            self._load_from_yaml()
+        except ValueError as e:
+            self.invalid = True
+
         self.progress_bar_wrapper = progress_bar_wrapper
 
     def _load_from_yaml(self):
@@ -24,6 +32,9 @@ class Software:
         content = self.backend.get(self.meta_file, self.cache_dir, return_content=True)
 
         meta = yaml.safe_load(content)
+        if not meta:
+            raise ValueError("Empty Meta File")
+
         self.title = meta.get("title")
         self.genre = meta.get("genre")
         self.description = meta.get("description")

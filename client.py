@@ -30,8 +30,9 @@ def close_input_window(input_window):
     '''Close the config window and save the settings'''
 
     # retrieve values #
-    entries = list(filter(lambda x: isinstance(x, customtkinter.CTkEntry), input_window.winfo_children()))
+    entries = list(filter(lambda x: isinstance(x, (customtkinter.CTkEntry, customtkinter.CTkOptionMenu)), input_window.winfo_children()))
     labels = [ input_window.grid_slaves(row=e.grid_info()["row"], column=e.grid_info()["column"]-1)[0] for e in entries ]
+    print(labels)
     ret_dict = dict()
     for e, l in zip(entries, labels):
         ret_dict.update({ l.cget("text") : e.get() })
@@ -276,17 +277,30 @@ if __name__ == "__main__":
         user = config_loaded.get("User:")
         password = config_loaded.get("Password:")
         install_dir = config_loaded["Install dir:"]
+        backend_type = config_loaded["Select option:"]
 
         # get the secod part of the server string, then split once at first / to get path and prepend / again#
-        remote_root_dir = "/" + config_loaded["Server/Path:"].split("://")[1].split("/", 1)[1]
-        server = config_loaded["Server/Path:"][:-len(remote_root_dir)]
+        if backend_type == "FTP/FTPS":
+            remote_root_dir = "/" + config_loaded["Server/Path:"].split("://")[1].split("/", 1)[1]
+            server = config_loaded["Server/Path:"][:-len(remote_root_dir)]
+        elif backend_type == "Local Filesystem":
+            remote_root_dir = config_loaded["Server/Path:"]
+            server = None
+        else:
+            raise NotImplementedError("Unsupported Backend")
 
         # debug output #
         print(user, password, install_dir, remote_root_dir, server, config_loaded["Server/Path:"])
 
         # add db backend #
-        db = data_backend.FTP(user, password, install_dir, server=server,
+        if backend_type == "FTP/FTPS":
+            db = data_backend.FTP(user, password, install_dir, server=server,
                 remote_root_dir=remote_root_dir, progress_bar_wrapper=pgw, tkinter_root=app)
+        elif backend_type == "Local Filesystem":
+            db = data_backend.LocalFS(user, password, install_dir, server=server,
+                remote_root_dir=remote_root_dir, progress_bar_wrapper=pgw, tkinter_root=app)
+        else:
+            raise NotImplementedError("Unsupported Backend")
 
     # geometry is set at the very beginning #
     app.update()

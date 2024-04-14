@@ -20,6 +20,7 @@ class DataBackend:
         self.install_dir = install_dir
         self.progress_bar_wrapper = progress_bar_wrapper
         self.root = tkinter_root
+        self.cache_dir = "./cache/"
 
     def get(self, path, return_content=False):
         '''Return the contents of this path'''
@@ -50,8 +51,8 @@ class LocalFS(DataBackend):
         
         # load the file on remote #
         with open(fullpath, "rb") as f:
-            print(cache_dir, path)
             target = os.path.join(cache_dir, os.path.basename(path))
+            print("Cache-Dir-Base", cache_dir, "Cache-Dir-Target", target, "Path:", path)
             with open(target, "wb") as ft:
                 if return_content:
                     return f.read()
@@ -82,9 +83,9 @@ class LocalFS(DataBackend):
             if not os.path.isfile(meta_file):
                 continue
             else:
-                meta_info_list.append(software.Software(meta_file, self))
+                meta_info_list.append(software.Software(meta_file, self, self.progress_bar_wrapper))
         
-        return meta_info_list
+        return list(filter(lambda x: not x.invalid, meta_info_list))
 
 class FTP(DataBackend):
 
@@ -121,6 +122,9 @@ class FTP(DataBackend):
             ftp.login(self.user, self.password)
         else:
             ftp.login()
+
+        # cache dir is automatically set #
+        self.cache_dir = None
 
         return ftp
 
@@ -227,5 +231,5 @@ class FTP(DataBackend):
                     #print(meta_file_content)
                     local_meta_file_list.append(f)
         
-        return [ software.Software(meta_file, self, self.progress_bar_wrapper) 
-                    for meta_file in local_meta_file_list ]
+        return list(filter(lambda x: not x.invalid, [ software.Software(meta_file, self, self.progress_bar_wrapper) 
+                    for meta_file in local_meta_file_list ]))
