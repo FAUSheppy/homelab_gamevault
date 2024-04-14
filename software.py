@@ -6,6 +6,7 @@ import shutil
 import pathlib
 import tqdm
 import webbrowser
+import jinja_helper
 
 class Software:
 
@@ -107,6 +108,9 @@ class Software:
         # download & install registry files #
         for rf in self.reg_files:
             path = self.backend.get(rf, cache_dir=self.cache_dir)
+            if path.endswith(".j2"):
+                path = jinja_helper.render_path(path, self.backend.install_dir, self.directory)
+
             localaction.install_registry_file(path)
 
         # install dependencies #
