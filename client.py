@@ -32,7 +32,7 @@ def close_input_window(input_window):
     # retrieve values #
     entries = list(filter(lambda x: isinstance(x, (customtkinter.CTkEntry, customtkinter.CTkOptionMenu)), input_window.winfo_children()))
     labels = [ input_window.grid_slaves(row=e.grid_info()["row"], column=e.grid_info()["column"]-1)[0] for e in entries ]
-    print(labels)
+
     ret_dict = dict()
     for e, l in zip(entries, labels):
         ret_dict.update({ l.cget("text") : e.get() })
@@ -43,8 +43,9 @@ def close_input_window(input_window):
         json.dump(ret_dict, f)
 
     # quit input window #
+    input_window.update()
     input_window.quit()
-
+    input_window.withdraw()
 
 def dropdown_changed(dropdown_var, user_entry, password_entry, server_path_entry,
                      install_dir_entry):
@@ -267,6 +268,7 @@ if __name__ == "__main__":
 
     if not os.path.isfile(CONFIG_FILE):
         get_config_inputs()
+        print("wtf")
 
     # load config #
     with open(CONFIG_FILE) as f:
