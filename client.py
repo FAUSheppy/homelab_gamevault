@@ -40,7 +40,7 @@ def close_input_window(input_window):
     # dump config and write to file #
     print(json.dumps(ret_dict))
     with open(CONFIG_FILE, "w") as f:
-        json.dump(ret_dict, f)
+        json.dump(ret_dict, f, indent=2)
 
     # quit input window #
     input_window.update()
