@@ -35,7 +35,7 @@ def run_exe(path, synchronous=False):
 
     print("Executing:", path)
     try:
-        subprocess.Popen(path)
+        subprocess.Popen(path, cwd=os.path.dirname(path))
     except OSError as e:
         if "WinError 740" in str(e):
             p = subprocess.Popen(["python", "adminrun.py", path], 
