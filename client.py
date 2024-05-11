@@ -14,7 +14,7 @@ customtkinter.set_default_color_theme("blue")
 
 app = customtkinter.CTk()
 
-app.geometry("1030x770")
+app.geometry("1230x770")
 last_geometry = app.winfo_geometry()
 
 buttons = []
