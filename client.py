@@ -206,9 +206,13 @@ def create_main_window_tile(software):
     '''Create the main window tile'''
 
     if software.get_thumbnail():
-        img = PIL.Image.open(software.get_thumbnail())
-        img = imagetools.smart_resize(img, 200, 300)
-        #img = img.resize((200, 300))
+        try:
+            print("Loading thumbnail:",  software.get_thumbnail())
+            img = PIL.Image.open(software.get_thumbnail())
+            img = imagetools.smart_resize(img, 200, 300)
+        except PIL.UnidentifiedImageError:
+            print("Failed to load thumbnail:", software.get_thumbnail())
+            img = PIL.Image.new('RGB', (200, 300))
     else:
         img = PIL.Image.new('RGB', (200, 300))
 
