@@ -5,6 +5,19 @@ import software
 import ftplib
 import tqdm
 
+class SESSION_REUSE_FTP_TLS(ftplib.FTP_TLS):
+    """Explicit FTPS, with shared TLS session"""
+
+    def ntransfercmd(self, cmd, rest=None):
+
+        conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
+        if self._prot_p:
+            conn = self.context.wrap_socket(
+                conn,
+                server_hostname=self.host,
+                session=self.sock.session)  # this is the fix
+        return conn, size
+
 class DataBackend:
 
     def _create_cache_dir(self, cache_dir):
@@ -21,6 +34,7 @@ class DataBackend:
         self.progress_bar_wrapper = progress_bar_wrapper
         self.root = tkinter_root
         self.cache_dir = "./cache/"
+        self.ftp = None # ftp connection object
 
     def get(self, path, return_content=False):
         '''Return the contents of this path'''
@@ -93,6 +107,9 @@ class FTP(DataBackend):
 
     def _connect(self):
 
+        if self.ftp:
+            return self.ftp
+
         if self.server.startswith("ftp://"):
             tls = False
         elif self.server.startswith("ftps://"):
@@ -104,28 +121,39 @@ class FTP(DataBackend):
         server = self.server.split("://")[1]
         port = None
         try:
-            port = int(server.split(":")[-1])
+            server = server.split(":")[0]
+        except (IndexError, ValueError):
+            port = 0
+
+        # try extract server #
+        try:
             server = server.split(":")[0]
         except (IndexError, ValueError):
             server = self.server
-        
-        #print("Connectiong to:", server, "on port:", port)
+
+        print("Connecting to:", server, "on port:", port, "ssl =", tls)
 
         # connect #
         if not tls:
             ftp = ftplib.FTP()
         else:
-            ftp = ftplib.FTP_TLS()
-        ftp.connect(server, port=port)
+            ftp = SESSION_REUSE_FTP_TLS()
+
+        ftp.connect(server, port=port or 0)
 
         if self.user:
             ftp.login(self.user, self.password)
         else:
             ftp.login()
 
+        # open a secure session for tls #
+        if tls:
+            ftp.prot_p()
+
         # cache dir is automatically set #
         self.cache_dir = None
 
+        self.ftp = ftp
         return ftp
 
 
