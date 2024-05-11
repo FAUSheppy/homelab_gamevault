@@ -64,6 +64,8 @@ class Software:
         '''Extract a cached, downloaded zip to the target location'''
 
         software_path = os.path.join(target, self.title)
+        if os.path.isdir(software_path):
+            return # TODO better skip
         os.makedirs(software_path, exist_ok=True)
 
         with zipfile.ZipFile(cache_src, 'r') as zip_ref:
@@ -109,7 +111,9 @@ class Software:
         for rf in self.reg_files:
             path = self.backend.get(rf, cache_dir=self.cache_dir)
             if path.endswith(".j2"):
-                path = jinja_helper.render_path(path, self.backend.install_dir, self.directory)
+                target_install_dir = os.path.join(self.backend.install_dir, self.title)
+                print("Install dir Registry:", target_install_dir)
+                path = jinja_helper.render_path(path, target_install_dir, self.directory)
 
             localaction.install_registry_file(path)
 

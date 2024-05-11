@@ -1,7 +1,7 @@
 import jinja2
 import os
 
-def render_path(path, install_location, game_directory):
+def render_path(path, install_location, game_directory,):
 
     # sanity check input path #
     if not path.endswith(".reg.j2"):
@@ -17,9 +17,10 @@ def render_path(path, install_location, game_directory):
 
     template = jinja2.Template(input_content)
     print("in", input_content)
+
     # render #
     output_content = template.render(
-        install_dir=os.path.join(install_location, game_directory).replace("\\", "\\\\"),
+        install_dir=install_location.replace("\\", "\\\\"),
         user_home=os.path.expanduser("~").replace("\\", "\\\\")
     )
 
