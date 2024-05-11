@@ -281,6 +281,10 @@ if __name__ == "__main__":
         install_dir = config_loaded["Install dir:"]
         backend_type = config_loaded["Select option:"]
 
+        # fix abs path if not set #
+        if os.path.abspath(install_dir):
+            install_dir = os.path.join(os.getcwd(), install_dir)
+
         # get the secod part of the server string, then split once at first / to get path and prepend / again#
         if backend_type == "FTP/FTPS":
             remote_root_dir = "/" + config_loaded["Server/Path:"].split("://")[1].split("/", 1)[1]
