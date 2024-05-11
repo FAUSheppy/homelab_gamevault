@@ -173,6 +173,8 @@ class FTP(DataBackend):
         fullpath = fullpath.replace("\\", "/")
         local_file = os.path.join(cache_dir, os.path.basename(path))
         
+        # print("Cachedir:", cache_dir, os.path.basename(path), local_file)
+
         if not os.path.isfile(local_file):
             ftp = self._connect()
             ftp.sendcmd('TYPE I')

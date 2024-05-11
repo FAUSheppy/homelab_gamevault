@@ -17,7 +17,7 @@ class Software:
         self.backend = backend
         print("Software Directory:", self.directory)
 
-        self.cache_dir = backend.cache_dir or os.path.join("cache", self.directory)
+        self.cache_dir = backend.cache_dir or os.path.join("cache", self.directory.lstrip("/").lstrip("\\"))
 
         # return None instead of the object if yaml failed #
         try:
