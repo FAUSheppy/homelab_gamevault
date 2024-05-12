@@ -5,3 +5,7 @@ cache/
 install/
 *.json
 install-dir/
+
+*.spec
+*.exe
+dist/
