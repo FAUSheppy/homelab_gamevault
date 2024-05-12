@@ -8,7 +8,7 @@ if (-not $pythonInstalled) {
 }
 
 # install dependencies
-Start-Process python -ArgumentList "-m", "pip", "install", "-r", $requirementsFilePath -Wait
+Start-Process python -ArgumentList "-m", "pip", "install", "-r", requirements.txt -Wait
 
 # Get the directory of the script
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
