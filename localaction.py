@@ -1,5 +1,6 @@
 import subprocess
 import os
+import win32com.client
 
 def _template_registry_file(template_file, game_path=None):
     '''Template the registry file before installation'''
@@ -27,13 +28,22 @@ def install_extra_files(extra_files_list, path):
     '''Copy/Install extra gamedata to a give location'''
     pass
 
+def resolve_lnk(lnk_file_path):
+    shell = win32com.client.Dispatch("WScript.Shell")
+    shortcut = shell.CreateShortcut(lnk_file_path)
+    return shortcut.TargetPath
+
 def run_exe(path, synchronous=False):
     '''Launches a given software'''
 
     if synchronous:
         raise NotImplementedError("SYNC not yet implemented")
 
+    if path.endswith(".lnk"):
+        path = resolve_lnk(path)
+
     print("Executing:", path)
+
     try:
         subprocess.Popen(path, cwd=os.path.dirname(path))
     except OSError as e:
