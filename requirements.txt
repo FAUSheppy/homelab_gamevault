@@ -4,3 +4,4 @@ customtkinter
 tqdm
 Jinja2
 pyyaml
+pywin32
