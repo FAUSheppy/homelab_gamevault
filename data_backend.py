@@ -183,6 +183,7 @@ class FTP(DataBackend):
 
             # load the file on remote #
             total_size = ftp.size(fullpath)
+            print(total_size)
             self.progress_bar_wrapper.get_pb()["maximum"] = total_size
 
             print(local_file, "not in cache, retriving..")
@@ -200,7 +201,7 @@ class FTP(DataBackend):
                     local_file_open.write(data)
                     self.root.update_idletasks() # Update the GUI
                     self.progress_bar_wrapper.get_pb().set(
-                        self.progress_bar_wrapper.get_pb().get() + len(data))
+                        self.progress_bar_wrapper.get_pb().get() + len(data)/total_size)
                     cmd_progress_bar.update(len(data))
 
                 # run with callback #
