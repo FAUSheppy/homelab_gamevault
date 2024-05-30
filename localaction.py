@@ -53,7 +53,10 @@ def run_exe(path, synchronous=False):
     '''Launches a given software'''
 
     if os.name != "nt":
-        subprocess.Popen(["wine64", path], cwd=os.path.dirname(path))
+        if ".lnk" in path:
+            subprocess.Popen(["wine64", "start", path])
+        else:
+            subprocess.Popen(["wine64", path], cwd=os.path.dirname(path))
         return
 
     if synchronous:

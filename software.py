@@ -103,6 +103,9 @@ class Software:
 
         # execute or unpack #
         if local_file.endswith(".exe"):
+            if os.name != "nt" and not os.path.isabs(local_file):
+                # need abs path for wine #
+                local_file = os.path.join(os.getcwd(), local_file)
             localaction.run_exe(local_file)
         elif local_file.endswith(".zip"):
             self._extract_to_target(local_file, self.backend.install_dir)
@@ -127,6 +130,11 @@ class Software:
         # run installer if set #
         if self.installer:
             installer_path = os.path.join(self.backend.install_dir,  self.title, self.installer)
+            if os.name != "nt" and not os.path.isabs(installer_path):
+                # need abs path for wine #
+                installer_path = os.path.join(os.getcwd(), installer_path)
+
+
             print("Running installer:", installer_path)
             localaction.run_exe(installer_path)
 
@@ -148,4 +156,7 @@ class Software:
             return
 
         if self.run_exe:
-            localaction.run_exe(os.path.join(self.backend.install_dir, self.title, self.run_exe)) 
+            if os.name == "nt" or not ".lnk" in self.run_exe:
+                localaction.run_exe(os.path.join(self.backend.install_dir, self.title, self.run_exe)) 
+            else:
+                localaction.run_exe(self.run_exe)
