@@ -4,6 +4,7 @@ import yaml
 import software
 import ftplib
 import tqdm
+import ssl
 
 class SESSION_REUSE_FTP_TLS(ftplib.FTP_TLS):
     """Explicit FTPS, with shared TLS session"""
@@ -138,6 +139,7 @@ class FTP(DataBackend):
             ftp = ftplib.FTP()
         else:
             ftp = SESSION_REUSE_FTP_TLS()
+            ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
 
         ftp.connect(server, port=port or 0)
 
