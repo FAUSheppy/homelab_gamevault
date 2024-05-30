@@ -9,7 +9,7 @@ class ProgressBarWrapper:
         self.progress_bar = None
 
     def new(self, tk_parent):
-        self.progress_bar = customtkinter.CTkProgressBar(tk_parent)
+        self.progress_bar = customtkinter.CTkProgressBar(tk_parent, height=20, width=200)
         self.progress_bar["maximum"] = 10000
         self.progress_bar.set(0)
         return self.progress_bar

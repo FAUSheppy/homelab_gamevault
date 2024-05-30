@@ -45,7 +45,7 @@ def create_details_page(app, software, backswitch_function):
                                           command=backswitch_function)
     back_button.pack(anchor="nw", side="left")
     progress_bar = software.progress_bar_wrapper.new(navbar)
-    progress_bar.pack(anchor="nw", side="left")
+    progress_bar.pack(anchor="nw", side="left", padx=20, pady=5)
     elements.append(navbar)
     elements.append(back_button)
     elements.append(progress_bar)
