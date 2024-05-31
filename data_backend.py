@@ -242,8 +242,8 @@ class FTP(DataBackend):
                 paths = ftp.nlst(fullpath)
                 self.paths_listed.update({fullpath: paths})
 
-            if new_connection: # close individual connections
-                ftp.close()
+                if new_connection: # close individual connections
+                    ftp.close()
 
             if not fullpaths:
                 return paths
