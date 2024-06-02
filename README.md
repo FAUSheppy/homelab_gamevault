@@ -14,3 +14,8 @@ You can download the GNU GPL Licensed game "FreeDink" from [here](https://nextcl
     sudo dpkg --add-architecture i386 \n
     sudo apt install --install-recommends winehq-staging
     sudo apt install libgl1:i386 nvidia-driver-libs:i386
+    sudo apt install python3 python3-pip python3-tk
+
+    # non sudo in project #
+    python -m pip install -r requirements.txt
+    python client.py
