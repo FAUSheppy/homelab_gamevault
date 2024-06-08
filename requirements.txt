@@ -1,5 +1,5 @@
 pyuac
-Pillow==9.4.0
+Pillow==10.0.3
 customtkinter
 tqdm
 Jinja2
