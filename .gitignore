@@ -6,7 +6,11 @@ cache/
 install/
 *.json
 install-dir/
-
 *.spec
 *.exe
 dist/
+%APPDATA%/
+example_software_root/
+
+# windows dir on linux ä
+**\\install-dir/
