@@ -184,13 +184,15 @@ class FTP(DataBackend):
         # print("Cachedir:", cache_dir, os.path.basename(path), local_file)
 
         if not os.path.isfile(local_file):
+
             ftp = self._connect(individual_connection=True)
             ftp.sendcmd('TYPE I')
 
             # load the file on remote #
             if not new_connection:
+
                 total_size = ftp.size(fullpath)
-                print(total_size)
+                print("Total Size:", total_size)
                 self.progress_bar_wrapper.get_pb()["maximum"] = total_size
 
                 print(local_file, "not in cache, retriving..")
@@ -209,8 +211,10 @@ class FTP(DataBackend):
                         if new_connection: # return if parralell
                             return
                         self.root.update_idletasks() # Update the GUI
-                        self.progress_bar_wrapper.get_pb().set(
-                            self.progress_bar_wrapper.get_pb().get() + len(data)/total_size)
+                        current_total = self.progress_bar_wrapper.get_pb().get() + len(data)/total_size
+                        self.progress_bar_wrapper.get_pb().set(current_total)
+                        self.progress_bar_wrapper.set_text(
+                                        text="Downloading: {:.2f}%".format(current_total*100))
                         cmd_progress_bar.update(len(data))
 
                     # run with callback #

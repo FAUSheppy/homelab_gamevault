@@ -38,17 +38,26 @@ def create_details_page(app, software, backswitch_function):
 
     img = PIL.ImageTk.PhotoImage(img)
 
-    # navbar & progress bar #
+    # navbar #
     navbar = customtkinter.CTkFrame(app, fg_color="transparent")
     navbar.grid(column=0, row=0, padx=10, pady=5, sticky="ew")
-    back_button = customtkinter.CTkButton(navbar, text="Back", 
-                                          command=backswitch_function)
+
+    # back button
+    back_button = customtkinter.CTkButton(navbar, text="Back", command=backswitch_function)
     back_button.pack(anchor="nw", side="left")
+
+    # progress bar #
     progress_bar = software.progress_bar_wrapper.new(navbar)
     progress_bar.pack(anchor="nw", side="left", padx=20, pady=5)
+
+    # progress bar text #
+    progress_text = software.progress_bar_wrapper.new_text(navbar)
+    progress_text.pack(anchor="nw", side="left", padx=20, pady=5)
+
     elements.append(navbar)
     elements.append(back_button)
     elements.append(progress_bar)
+    elements.append(progress_text)
 
     # thumbnail image #
     thumbnail_image = customtkinter.CTkButton(app, text="", image=img, width=500, height=700,
@@ -118,7 +127,7 @@ def create_details_page(app, software, backswitch_function):
         remove_text = "Remove Manually"
     else:
         install_text = "Install"
-        remove_text = "Remove"
+        remove_text = "Remove (not implemented)" # FIXME: change text once implemented
 
     install_button = customtkinter.CTkButton(button_frame, text=install_text,
                         command=lambda: software.install())
@@ -130,6 +139,9 @@ def create_details_page(app, software, backswitch_function):
     if remove_text != "Remove":
         remove_button.configure(state=tkinter.DISABLED)
         remove_button.configure(fg_color="gray")
+
+    # FIXME: disable remove button until implemented
+    remove_button.configure(state=tkinter.DISABLED)
 
     remove_button.pack(padx=10, pady=15, anchor="sw", side="left")
 

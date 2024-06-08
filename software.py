@@ -78,9 +78,15 @@ class Software:
                     count += 1
                     self.progress_bar_wrapper.get_pb().set(count/len(total_count))
                     self.progress_bar_wrapper.get_pb().update_idletasks()
+                    self.progress_bar_wrapper.set_text(
+                                    text="Extracting: {:.2f}%".format(count/len(total_count)*100))
                 except zipfile.error as e:
                     pass # TODO ???
             #zip_ref.extractall(software_path)
+
+        self.progress_bar_wrapper.set_text(text="Loading..")
+        self.progress_bar_wrapper.update()
+
 
     def install(self):
         '''Install this software from the backend'''
@@ -92,6 +98,8 @@ class Software:
             webbrowser.open(self.link_only)
             return
 
+        self.progress_bar_wrapper.set_text(text="Please wait..")
+        self.progress_bar_wrapper.tk_parent.update_idletasks()
         path = os.path.join(self.directory, "main_dir")
         
         try:
@@ -145,6 +153,8 @@ class Software:
                 dest_dir = os.path.expandvars(dest)
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.copy(tmp, dest_dir)
+
+        self.progress_bar_wrapper.set_text(text="")
     
     def run(self):
         '''Run the configured exe for this software'''
