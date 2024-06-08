@@ -2,7 +2,7 @@ import PIL
 import tkinter
 import customtkinter
 import imagetools
-
+import os
 
 def show_large_picture(app, path):
     '''Show a full-window version of the clicked picture'''
@@ -150,9 +150,10 @@ def create_details_page(app, software, backswitch_function):
     run_button = customtkinter.CTkButton(button_frame, text="Run",
                     command=lambda: software.run())
     run_button.pack(padx=10, pady=15, anchor="sw", side="left")
+    software.run_button = run_button
 
     # install button #
-    if not software.run_exe:
+    if not software.run_exe or not os.path.isfile(software.run_exe):
         run_button.configure(state=tkinter.DISABLED)
         run_button.configure(fg_color="gray")
 

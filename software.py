@@ -1,4 +1,5 @@
 import yaml
+import tkinter
 import os
 import localaction
 import zipfile
@@ -15,6 +16,7 @@ class Software:
         self.meta_file = meta_file
         self.directory = os.path.dirname(meta_file)
         self.backend = backend
+        self.run_button = None
         print("Software Directory:", self.directory)
 
         self.cache_dir = backend.cache_dir or os.path.join("cache", self.directory.lstrip("/").lstrip("\\"))
@@ -48,7 +50,7 @@ class Software:
 
         self.pictures = [ self.backend.get(pp, self.cache_dir, new_connection=True) for pp in
                 self.backend.list(os.path.join(self.directory, "pictures"), fullpaths=True, new_connection=True) ]
-        
+
         self.reg_files = self.backend.list(os.path.join(self.directory, "registry_files"), fullpaths=True, new_connection=True)
 
 
@@ -59,7 +61,7 @@ class Software:
             return None
 
         return self.pictures[0]
-    
+
     def _extract_to_target(self, cache_src, target):
         '''Extract a cached, downloaded zip to the target location'''
 
@@ -69,7 +71,7 @@ class Software:
         os.makedirs(software_path, exist_ok=True)
 
         with zipfile.ZipFile(cache_src, 'r') as zip_ref:
-            
+
             total_count = zip_ref.infolist()
             count = 0
             for member in tqdm.tqdm(total_count, desc='Extracting '):
@@ -101,7 +103,7 @@ class Software:
         self.progress_bar_wrapper.set_text(text="Please wait..")
         self.progress_bar_wrapper.tk_parent.update_idletasks()
         path = os.path.join(self.directory, "main_dir")
-        
+
         try:
             remote_file = self.backend.list(path, fullpaths=True)[0]
         except IndexError:
@@ -117,7 +119,7 @@ class Software:
             localaction.run_exe(local_file)
         elif local_file.endswith(".zip"):
             self._extract_to_target(local_file, self.backend.install_dir)
-        
+
         # download & install registry files #
         for rf in self.reg_files:
             path = self.backend.get(rf, cache_dir=self.cache_dir)
@@ -155,7 +157,11 @@ class Software:
                 shutil.copy(tmp, dest_dir)
 
         self.progress_bar_wrapper.set_text(text="")
-    
+        if self.run_button:
+            self.run_button.configure(state=tkinter.NORMAL)
+            self.run_button.configure(fg_color="green")
+
+
     def run(self):
         '''Run the configured exe for this software'''
 
@@ -167,6 +173,6 @@ class Software:
 
         if self.run_exe:
             if os.name == "nt" or not ".lnk" in self.run_exe:
-                localaction.run_exe(os.path.join(self.backend.install_dir, self.title, self.run_exe)) 
+                localaction.run_exe(os.path.join(self.backend.install_dir, self.title, self.run_exe))
             else:
                 localaction.run_exe(self.run_exe)
