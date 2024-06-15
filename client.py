@@ -8,6 +8,7 @@ import json
 import os
 import cache_utils
 import imagetools
+import webbrowser
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
@@ -176,7 +177,11 @@ def load_main():
         if not cache_dir_size:
             cache_dir_size = cache_utils.get_cache_size()
             label = customtkinter.CTkLabel(app, text="Cache Size: {:.2f} GB".format(cache_dir_size))
+            GITHUB_URL = "https://github.com/FAUSheppy/homelab_gamevault"
+            github = customtkinter.CTkButton(app, text="Star on Github",
+                            command=lambda: webbrowser.open_new(GITHUB_URL))
             label.grid(row=0, column=0)
+            github.grid(row=0, column=1)
 
     # set update listener & update positions #
     update_button_positions()
