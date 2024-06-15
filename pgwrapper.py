@@ -43,4 +43,5 @@ class ProgressBarWrapper:
         if self.progress_text:
             self.progress_text.configure(text=text)
         else:
-            raise AssertionError("No progress text in this wrapper created")
+            pass
+            #FIXME raise AssertionError("No progress text in this wrapper created")
