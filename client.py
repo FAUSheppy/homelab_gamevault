@@ -18,6 +18,8 @@ app = customtkinter.CTk()
 app.geometry("1490x700")
 last_geometry = app.winfo_geometry()
 
+scrollable_frame = customtkinter.CTkScrollableFrame(app, width=app.winfo_width(), height=app.winfo_height())
+
 buttons = []
 details_elements = []
 
@@ -168,10 +170,19 @@ def load_main():
 
     app.title("Lan Vault: Overview")
 
+    # navbar should not expand when window is resized
+    app.grid_rowconfigure(0, weight=0)
+    # buttongrid (scrollable frame) should expand when window is resized
+    app.grid_rowconfigure(1, weight=1)
+    app.grid_columnconfigure(0, weight=1)
+    # place scrollable frame
+    scrollable_frame.grid(row=1, column=0, sticky="nsew", columnspan=2)
+
+
     # create tiles from meta files #
     cache_dir_size = 0
     for software in db.find_all_metadata():
-        create_main_window_tile(software)
+        create_main_window_tile(software, scrollable_frame)
 
         # retrieve cache dir from any software #
         if not cache_dir_size:
@@ -191,7 +202,7 @@ def destroy_main():
     '''Destroy all elements in the main view'''
 
     global buttons
-
+    scrollable_frame.grid_remove()
     app.unbind("<Configure>")
     for b in buttons:
         b.destroy()
@@ -207,7 +218,7 @@ def load_details(app, software):
     app.title("Lan Vault: {}".format(software.title))
     details_elements = client_details.create_details_page(app, software, switch_to_main)
 
-def create_main_window_tile(software):
+def create_main_window_tile(software, parent):
     '''Create the main window tile'''
 
     if software.get_thumbnail():
@@ -222,7 +233,7 @@ def create_main_window_tile(software):
         img = PIL.Image.new('RGB', (200, 300))
 
     img = PIL.ImageTk.PhotoImage(img)
-    button = customtkinter.CTkButton(app, image=img,
+    button = customtkinter.CTkButton(parent, image=img,
                                         width=200, height=300,
                                         command=lambda: switch_to_game_details(software),
                                         border_width=0, corner_radius=0, border_spacing=0,
@@ -235,13 +246,13 @@ def update_button_positions(event=None):
     '''Sets the tile positions initially and on resize'''
 
     global last_geometry
-
     # check vs old location #
     new_geometry = app.winfo_geometry()
     if last_geometry[0] == new_geometry[0] and last_geometry[1] == new_geometry[1]:
         return
     else:
         last_geometry = new_geometry
+        scrollable_frame.configure(width=app.winfo_width(), height=app.winfo_height())
 
     # Calculate the number of columns based on the current width of the window #
     num_columns = app.winfo_width() // 201  # Adjust 100 as needed for button width
