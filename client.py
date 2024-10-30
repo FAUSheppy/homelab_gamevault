@@ -127,13 +127,14 @@ def get_config_inputs():
     dropdown_changed(dropdown_var, user_entry, password_entry, server_path_entry, install_dir_entry)
     dropdown.grid(row=0, column=1, padx=10, pady=5)
 
+    # Button to abort & close #
+    abort_button = customtkinter.CTkButton(input_window, text="Abort", command=lambda: input_window.quit(), fg_color="red")
+    abort_button.grid(row=5, column=0, padx=10, pady=20)
+
     # Button to save & close #
     save_button = customtkinter.CTkButton(input_window, text="Save & Close", command=lambda: close_input_window(input_window))
-    save_button.grid(row=5, column=0, padx=10, pady=20)
+    save_button.grid(row=5, column=2, padx=10, pady=20)
 
-    # Button to abort & close #
-    abort_button = customtkinter.CTkButton(input_window, text="Abort", command=lambda: input_window.quit())
-    abort_button.grid(row=5, column=2, padx=10, pady=20)
 
     input_window.update()
     input_window.mainloop()
