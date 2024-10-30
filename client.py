@@ -76,7 +76,7 @@ def dropdown_changed(dropdown_var, user_entry, password_entry, server_path_entry
             password_entry.configure(fg_color=non_disabled_entry_color)
             user_entry.configure(fg_color=non_disabled_entry_color)
         server_path_entry.delete(0, customtkinter.END)
-        server_path_entry.insert(0, "ftp://server/path::port or ftps://server/path:port")
+        server_path_entry.insert(0, "ftp://server/path:port or ftps://server/path:port")
 
     install_dir_entry.delete(0, customtkinter.END)
     install_dir_entry.insert(0, "./install-dir")
