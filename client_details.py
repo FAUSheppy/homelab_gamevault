@@ -3,6 +3,7 @@ import tkinter
 import customtkinter
 import imagetools
 import os
+import statekeeper
 
 def show_large_picture(app, path):
     '''Show a full-window version of the clicked picture'''
@@ -21,6 +22,7 @@ def show_large_picture(app, path):
     large_image = customtkinter.CTkButton(app, text="", image=img, width=x-2*30, height=y-2*30,
                     fg_color="transparent", hover_color="black", corner_radius=0, border_width=0, border_spacing=0,
                     command=lambda: large_image.destroy())
+
     large_image.place(x=30, y=30)
 
 def create_details_page(app, software, backswitch_function):
@@ -170,21 +172,24 @@ def create_details_page(app, software, backswitch_function):
     # add other pictures #
     if software.pictures:
 
-        picture_frame = customtkinter.CTkScrollableFrame(info_frame, height=200, width=300, orientation="horizontal", fg_color="transparent")
-        picture_frame.grid(column=0, row=7, sticky="we")
+        def callback_add_pictures():
+            picture_frame = customtkinter.CTkScrollableFrame(info_frame, height=200, width=300, orientation="horizontal", fg_color="transparent")
+            picture_frame.grid(column=0, row=7, sticky="we")
 
-        i = 0
-        for path in software.pictures[1:]:
-            img = PIL.Image.open(path)
-            img = imagetools.smart_resize(img, 180, 180)
-            img = PIL.ImageTk.PhotoImage(img)
-            extra_pic_button = customtkinter.CTkButton(picture_frame, text="", image=img, command=lambda path=path: show_large_picture(app, path),
-                                     hover_color="black", corner_radius=0,)
-            extra_pic_button.configure(fg_color="transparent")
-            extra_pic_button.grid(pady=10, row=0, column=i)
-            elements.append(extra_pic_button)
-            i += 1
-        
-        elements.append(picture_frame)
+            i = 0
+            for path in software.pictures[1:]:
+                img = PIL.Image.open(path)
+                img = imagetools.smart_resize(img, 180, 180)
+                img = PIL.ImageTk.PhotoImage(img)
+                extra_pic_button = customtkinter.CTkButton(picture_frame, text="", image=img, command=lambda path=path: show_large_picture(app, path),
+                                        hover_color="black", corner_radius=0,)
+                extra_pic_button.configure(fg_color="transparent")
+                extra_pic_button.grid(pady=10, row=0, column=i)
+                elements.append(extra_pic_button)
+                i += 1
+            
+            elements.append(picture_frame)
+
+        statekeeper.add_to_task_queue(callback_add_pictures)
 
     return elements

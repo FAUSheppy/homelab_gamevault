@@ -32,7 +32,7 @@ class Software:
 
     def _load_from_yaml(self):
 
-        content = self.backend.get(self.meta_file, self.cache_dir, return_content=True, new_connection=True)
+        content = self.backend.get(self.meta_file, self.cache_dir, return_content=True)
 
         meta = yaml.safe_load(content)
         if not meta:
@@ -48,10 +48,10 @@ class Software:
         self.run_exe = meta.get("run_exe")
         self.installer = meta.get("installer")
 
-        self.pictures = [ self.backend.get(pp, self.cache_dir, new_connection=True) for pp in
-                self.backend.list(os.path.join(self.directory, "pictures"), fullpaths=True, new_connection=True) ]
+        self.pictures = [ self.backend.get(pp, self.cache_dir) for pp in
+                self.backend.list(os.path.join(self.directory, "pictures"), fullpaths=True) ]
 
-        self.reg_files = self.backend.list(os.path.join(self.directory, "registry_files"), fullpaths=True, new_connection=True)
+        self.reg_files = self.backend.list(os.path.join(self.directory, "registry_files"), fullpaths=True)
 
 
     def get_thumbnail(self):

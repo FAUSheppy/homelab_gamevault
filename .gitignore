@@ -14,3 +14,4 @@ example_software_root/
 
 # windows dir on linux ä
 **\\install-dir/
+server/data/

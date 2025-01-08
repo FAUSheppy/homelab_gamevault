@@ -9,6 +9,7 @@ import os
 import cache_utils
 import imagetools
 import webbrowser
+import statekeeper
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
@@ -183,6 +184,7 @@ def load_main():
     # create tiles from meta files #
     cache_dir_size = 0
     for software in db.find_all_metadata():
+
         create_main_window_tile(software, scrollable_frame)
 
         # retrieve cache dir from any software #
@@ -222,24 +224,35 @@ def load_details(app, software):
 def create_main_window_tile(software, parent):
     '''Create the main window tile'''
 
-    if software.get_thumbnail():
-        try:
-            print("Loading thumbnail:",  software.get_thumbnail())
-            img = PIL.Image.open(software.get_thumbnail())
-            img = imagetools.smart_resize(img, 200, 300)
-        except PIL.UnidentifiedImageError:
-            print("Failed to load thumbnail:", software.get_thumbnail())
-            img = PIL.Image.new('RGB', (200, 300))
-    else:
-        img = PIL.Image.new('RGB', (200, 300))
-
-    img = PIL.ImageTk.PhotoImage(img)
-    button = customtkinter.CTkButton(parent, image=img,
+    img = PIL.Image.new('RGB', (200, 300))
+    imgTk = PIL.ImageTk.PhotoImage(img)
+    button = customtkinter.CTkButton(parent, image=imgTk,
                                         width=200, height=300,
                                         command=lambda: switch_to_game_details(software),
                                         border_width=0, corner_radius=0, border_spacing=0,
                                         text=software.title,
                                         fg_color="transparent", compound="top", anchor="s")
+
+
+    def callback_update_thumbnail():
+
+        # TODO: bind button & software into this callback
+
+        try:
+            target_file = software.get_thumbnail()
+            print("Loading thumbnail (async):",  )
+            img = PIL.Image.open(software.get_thumbnail())
+            img = imagetools.smart_resize(img, 200, 300)
+        except PIL.UnidentifiedImageError:
+            print("Failed to load thumbnail:", software.get_thumbnail())
+            img = PIL.Image.new('RGB', (200, 300))
+        
+        # TODO: button reconfigure
+
+    # register the update task for the image #
+    statekeeper.add_task(callback_update_thumbnail)
+
+    # cache button and return #
     buttons.append(button)
     return button
 
@@ -320,7 +333,9 @@ if __name__ == "__main__":
         print(user, password, install_dir, remote_root_dir, server, config_loaded["Server/Path:"])
 
         # add db backend #
-        if backend_type == "FTP/FTPS":
+        if True:
+            db = data_backend.HTTP(None, None, install_dir, remote_root_dir="./", server="http://localhost:5000", tkinter_root=app)
+        elif backend_type == "FTP/FTPS":
             db = data_backend.FTP(user, password, install_dir, server=server,
                 remote_root_dir=remote_root_dir, progress_bar_wrapper=pgw, tkinter_root=app)
         elif backend_type == "Local Filesystem":
