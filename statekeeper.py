@@ -1,14 +1,19 @@
 import requests
 import os
+import threading
 
 def add_to_download_queue(url, path):
     '''The download is added to the global queue and downloaded eventually'''
-    _download(url, path)
+    #_download(url, path)
+    thread = threading.Thread(target=_download, args=(url, path))
+    thread.start()
 
 def add_to_task_queue(task):
     '''Add a callback to background execution queue'''
-    print("Executing tasks", task)
-    task()
+    #print("Executing tasks", task)
+    thread = threading.Thread(target=task)
+    thread.start()
+    #task()
 
 def _download(url, path):
 
