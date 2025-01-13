@@ -26,13 +26,19 @@ class Software:
             self.invalid = False
             self._load_from_yaml()
         except ValueError as e:
+            print(e)
+            raise e
             self.invalid = True
+
+        if not progress_bar_wrapper:
+            raise AssertionError()
 
         self.progress_bar_wrapper = progress_bar_wrapper
 
     def _load_from_yaml(self):
 
         content = self.backend.get(self.meta_file, self.cache_dir, return_content=True)
+        # print("Meta-Content:", content)
 
         meta = yaml.safe_load(content)
         if not meta:
@@ -50,8 +56,13 @@ class Software:
 
         self.pictures = [ self.backend.get(pp, self.cache_dir) for pp in
                 self.backend.list(os.path.join(self.directory, "pictures"), fullpaths=True) ]
+        
+        if any([x is None for x in self.pictures]):
+            raise AssertionError("None Entries in self.pictures: " + str(self.pictures))
 
         self.reg_files = self.backend.list(os.path.join(self.directory, "registry_files"), fullpaths=True)
+
+        print("Finished Init for", self.title)
 
 
     def get_thumbnail(self):

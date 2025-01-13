@@ -19,6 +19,7 @@ def get_path():
     path = path.replace("\\", "/")
     if path.startswith("/"):
         path = path[1:]
+
     print("path", path, file=sys.stderr)
 
     info = request.args.get('info')

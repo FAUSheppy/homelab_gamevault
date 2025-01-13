@@ -173,12 +173,16 @@ def create_details_page(app, software, backswitch_function):
     if software.pictures:
 
         def callback_add_pictures():
+
             picture_frame = customtkinter.CTkScrollableFrame(info_frame, height=200, width=300, orientation="horizontal", fg_color="transparent")
             picture_frame.grid(column=0, row=7, sticky="we")
 
             i = 0
+            print("Software pictures in callback:", software.pictures[1:])
             for path in software.pictures[1:]:
-                img = PIL.Image.open(path)
+
+                print("Doing picture:", path)
+                img = PIL.Image.open(software.backend.get(path))
                 img = imagetools.smart_resize(img, 180, 180)
                 img = PIL.ImageTk.PhotoImage(img)
                 extra_pic_button = customtkinter.CTkButton(picture_frame, text="", image=img, command=lambda path=path: show_large_picture(app, path),

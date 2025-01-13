@@ -7,14 +7,16 @@ def add_to_download_queue(url, path):
 
 def add_to_task_queue(task):
     '''Add a callback to background execution queue'''
+    print("Executing tasks", task)
     task()
 
 def _download(url, path):
 
-    response = requests.get(url + path, stream=True)
+    response = requests.get(url + "?path=" + path, stream=True)
 
     # Check if the request was successful
     if response.status_code == 200:
+
         # Save the file locally
         local_filename = os.path.join("./cache", path)
 
@@ -23,3 +25,7 @@ def _download(url, path):
                 f.write(chunk)
 
         print(f"File downloaded successfully as {local_filename}")
+    
+    else:
+
+        raise AssertionError("Non-200 Response for:", url, path, response.status_code, response.text)

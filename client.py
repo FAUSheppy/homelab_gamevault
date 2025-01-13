@@ -185,6 +185,7 @@ def load_main():
     cache_dir_size = 0
     for software in db.find_all_metadata():
 
+        print("Software:", software)
         create_main_window_tile(software, scrollable_frame)
 
         # retrieve cache dir from any software #
@@ -240,17 +241,19 @@ def create_main_window_tile(software, parent):
 
         try:
             target_file = software.get_thumbnail()
-            print("Loading thumbnail (async):",  )
-            img = PIL.Image.open(software.get_thumbnail())
+            if not target_file:
+                return
+            print("Loading thumbnail (async):",  target_file)
+            img = PIL.Image.open(target_file)
             img = imagetools.smart_resize(img, 200, 300)
         except PIL.UnidentifiedImageError:
-            print("Failed to load thumbnail:", software.get_thumbnail())
+            print("Failed to load thumbnail:", target_file)
             img = PIL.Image.new('RGB', (200, 300))
         
-        # TODO: button reconfigure
+        button.configure(image=PIL.ImageTk.PhotoImage(img))
 
     # register the update task for the image #
-    statekeeper.add_task(callback_update_thumbnail)
+    statekeeper.add_to_task_queue(callback_update_thumbnail)
 
     # cache button and return #
     buttons.append(button)
@@ -334,7 +337,7 @@ if __name__ == "__main__":
 
         # add db backend #
         if True:
-            db = data_backend.HTTP(None, None, install_dir, remote_root_dir="./", server="http://localhost:5000", tkinter_root=app)
+            db = data_backend.HTTP(None, None, install_dir, remote_root_dir="./", server="http://localhost:5000", progress_bar_wrapper=pgw, tkinter_root=app)
         elif backend_type == "FTP/FTPS":
             db = data_backend.FTP(user, password, install_dir, server=server,
                 remote_root_dir=remote_root_dir, progress_bar_wrapper=pgw, tkinter_root=app)

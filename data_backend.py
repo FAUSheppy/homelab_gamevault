@@ -97,10 +97,16 @@ class HTTP(DataBackend):
     REMOTE_PATH = "/get-path"
 
     def _get_url(self):
-        print(self.server + HTTP.REMOTE_PATH)
+        #print(self.server + HTTP.REMOTE_PATH)
         return self.server + HTTP.REMOTE_PATH
 
-    def get(self, path, cache_dir=None, return_content=False):
+    def get(self, path, cache_dir="", return_content=False):
+
+        print("Getting", path, "cache dir", cache_dir, "return content:", return_content)
+
+        if cache_dir is None:
+            print("Setting cache dir from backend default", "cur:", cache_dir, "new (default):", self.cache_dir)
+            cache_dir = self.cache_dir
 
         # check the load cache dir #
         if cache_dir:
@@ -114,32 +120,44 @@ class HTTP(DataBackend):
             fullpath = os.path.join(self.remote_root_dir, path)
 
         fullpath = fullpath.replace("\\", "/")
-        local_file = os.path.join(cache_dir, os.path.basename(path))
+        local_file = os.path.join(cache_dir, fullpath)
+        local_dir = os.path.dirname(local_file)
 
-        print("Requiring:", local_file)
+        # sanity check and create directory #
+        if not local_dir.startswith(cache_dir):
+            raise AssertionError("Local Dir does not start with cache dir:" + local_dir)
+        else:
+            os.makedirs(local_dir, exist_ok=True)
 
-        if not os.path.isfile(local_file):
+        print("Requiring:", fullpath)
+
+        if not os.path.isfile(local_file) or os.stat(local_file).st_size == 0:
 
             if return_content:
 
                 # the content is needed for the UI now and not cached, it's needs to be downloaded synchroniously #
                 # as there cannot be a meaningful UI-draw without it. #
                 r = requests.get(self._get_url(), params={ "path" : path, "as_string": True })
-
+                print("Request Content:", r.text)
                 # cache the download imediatelly #
                 with open(local_file, encoding="utf-8", mode="w") as f:
-                    f.write(r.json()["content"])
+                    f.write( r.text)
 
                 # return the content #
-                return r.json()["content"]
+                print("Content for", fullpath, ":",  r.text)
+                return r.text
 
             else:
-                statekeeper.add_to_download_queue(self._get_url(), path, first=return_content)
+                print("Async Requested for:", local_file)
+                statekeeper.add_to_download_queue(self._get_url(), path)
+                return local_file
 
         elif return_content:
+            print("Returning Cached file:", local_file)
             with open(local_file, encoding="utf-8") as fr:
                 return fr.read()
         else:
+            print("Already present:", local_file)
             return local_file
 
     def list(self, path, fullpaths=False):
@@ -155,7 +173,7 @@ class HTTP(DataBackend):
         else:
 
             r = requests.get(self._get_url(), params={ "path" : path })
-            print(r, r.status_code, r.content)
+            #print(r, r.status_code, r.content)
             paths = r.json()["contents"]
 
             if not fullpaths:
@@ -168,6 +186,7 @@ class HTTP(DataBackend):
         local_meta_file_list = []
 
         root_elements = self.list(self.remote_root_dir)
+        print("root elements:", root_elements)
         with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()*5) as executor:
 
             software_dir_contents = list(executor.map(
@@ -186,6 +205,15 @@ class HTTP(DataBackend):
                 if f.endswith("meta.yaml"):
                     local_meta_file_list.append(f)
 
+
+        print("local meta:", local_meta_file_list)
+        software_list = None
         with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()*5) as executor:
             software_list = executor.map(lambda meta_file: software.Software(meta_file, self, self.progress_bar_wrapper), local_meta_file_list)
-            return list(filter(lambda x: not x.invalid, software_list))
+
+        # evaluate
+        software_list = list(software_list)
+        print("Software List:", software_list)
+        print("Invalid:", list(filter(lambda x: x.invalid, software_list)))
+        print("Valid:", list(filter(lambda x: not x.invalid, software_list)))
+        return list(filter(lambda x: not x.invalid, software_list))
