@@ -156,7 +156,7 @@ def create_details_page(app, software, backswitch_function):
 
     # install button #
     print(software.run_exe)
-    print(os.path.join(software.backend.install_dir, software.run_exe))
+    print(os.path.join(software.backend.install_dir, software.run_exe or ""))
     if not software.run_exe or not (os.path.isfile(software.run_exe) 
             or os.path.isfile(os.path.join(software.backend.install_dir, software.title, software.run_exe))):
         run_button.configure(state=tkinter.DISABLED)
