@@ -71,7 +71,7 @@ def run_exe(path, synchronous=False):
         subprocess.Popen(path, cwd=os.path.dirname(path))
     except OSError as e:
         if "WinError 740" in str(e):
-            p = subprocess.Popen(["python", "adminrun.py", path],
+            p = subprocess.Popen(["powershell", "-ExecutionPolicy", "Bypass", "-File", "windows_run_as_admin.ps1", path],
                 subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             print(p.communicate())
         else:
