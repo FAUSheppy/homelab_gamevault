@@ -25,6 +25,7 @@ buttons = []
 details_elements = []
 
 non_disabled_entry_color = None
+all_metadata = None
 
 db = None # app data-backend (i.e. LocalFS or FTP)
 
@@ -170,6 +171,8 @@ def switch_to_game_details(software):
 def load_main():
     '''Load the main page overview'''
 
+    global all_metadata
+
     app.title("Lan Vault: Overview")
 
     # navbar should not expand when window is resized
@@ -183,7 +186,10 @@ def load_main():
 
     # create tiles from meta files #
     cache_dir_size = 0
-    for software in db.find_all_metadata():
+    if not all_metadata:
+        all_metadata = db.find_all_metadata()
+
+    for software in all_metadata:
 
         print("Software:", software)
         create_main_window_tile(software, scrollable_frame)
