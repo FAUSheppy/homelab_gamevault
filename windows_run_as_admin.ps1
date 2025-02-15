@@ -1,6 +1,23 @@
 param (
-    [string]$Path
+    [string]$PathsJson
 )
+
+try {
+    $Paths = $PathsJson | ConvertFrom-Json -ErrorAction Stop
+} catch {
+    # If it fails, assume it's Base64-encoded and decode it
+    try {
+        $DecodedJson = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($PathsJson))
+        $Paths = $DecodedJson | ConvertFrom-Json -ErrorAction Stop
+    } catch {
+        Write-Error "Failed to parse PathsJson as JSON or Base64-encoded JSON."
+        exit 1
+    }
+}
+
+Write-Host "Paths"
+Write-Host $PathsJson
+Write-Host $PWD
 
 # Check if running as administrator
 $CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -9,19 +26,40 @@ $IsAdmin = $Principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::A
 
 if (-not $IsAdmin) {
     # Relaunch the script with elevated privileges
-    Start-Process powershell -ArgumentList "-File `"$PSCommandPath`" `"$Path`"" -Verb RunAs
+    $EncodedJson = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($PathsJson))
+    $TempFile = New-TemporaryFile
+    Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"Set-Location -Path '$PWD'; & '$PSCommandPath' '$EncodedJson' *> '$TempFile'`" " -Verb RunAs -Wait
+    
+    Start-Sleep 1
+    if (Test-Path $TempFile) {
+        # Output the captured output
+        Get-Content $TempFile | Write-Host
+        Remove-Item $TempFile
+    }else{
+        Write-Host "No output captured. Check if the script produces any output." 
+    }
+
     exit
 }
 
-# Run the process and capture output
-try {
-    $Process = Start-Process -FilePath $Path -NoNewWindow -PassThru -RedirectStandardOutput output.txt -RedirectStandardError error.txt
-    $Process.WaitForExit()
 
-    # Read and display output
-    Get-Content output.txt
-    Get-Content error.txt | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+foreach($Path in $Paths){
 
-} catch {
-    Write-Host "Error running the process: $_" -ForegroundColor Red
+    Write-Host "Running: $Path"
+
+    # Run the process and capture output
+    try {
+
+        if ($Path -match '\.reg$') {
+            # Run regedit silently to merge the .reg file
+            $Process = Start-Process -FilePath "regedit.exe" -ArgumentList "/s `"$Path`"" -NoNewWindow -PassThru
+        } else {
+            # Run the file normally
+            $Process = Start-Process -FilePath $Path -NoNewWindow -PassThru
+        }
+        $Process.WaitForExit()
+
+    } catch {
+        Write-Host "Error running the process: $_"
+    }
 }
