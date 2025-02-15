@@ -10,6 +10,7 @@ import cache_utils
 import imagetools
 import webbrowser
 import statekeeper
+import infowidget
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
@@ -26,6 +27,8 @@ details_elements = []
 
 non_disabled_entry_color = None
 all_metadata = None
+
+infowidget_window = None
 
 db = None # app data-backend (i.e. LocalFS or FTP)
 
@@ -180,8 +183,12 @@ def load_main():
     '''Load the main page overview'''
 
     global all_metadata
+    global infowidget_window
 
     app.title("Lan Vault: Overview")
+
+    if not infowidget_window:
+        infowidget_window = infowidget.ProgressBarApp(app)
 
     # navbar should not expand when window is resized
     app.grid_rowconfigure(0, weight=0)

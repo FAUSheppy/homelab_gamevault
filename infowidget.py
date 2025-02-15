@@ -16,14 +16,15 @@ import time
 import string
 
 class ProgressBarApp:
-    def __init__(self, root):
-        self.root = root
+    def __init__(self, parent):
+        
+        self.root = tk.Toplevel(parent) 
         self.root.title("Dynamic Progress Bars")
         
-        self.delete_all_button = tk.Button(root, text="Delete All Finished", command=self.delete_all_finished, state=tk.DISABLED)
+        self.delete_all_button = tk.Button(self.root, text="Delete All Finished", command=self.delete_all_finished, state=tk.DISABLED)
         self.delete_all_button.pack(pady=5)
         
-        self.frame = tk.Frame(root)
+        self.frame = tk.Frame(self.root)
         self.frame.pack(pady=10)
         
         self.progress_bars = []  # Store tuples of (progressbar, frame, duration, delete_button)
@@ -33,7 +34,6 @@ class ProgressBarApp:
 
     def add_progress_bars(self):
         while self.running:
-            time.sleep(3)  # Wait before adding a new progress bar
             
             frame = tk.Frame(self.frame)
             frame.pack(fill=tk.X, pady=2)
@@ -47,9 +47,14 @@ class ProgressBarApp:
             random_letter = random.choice(string.ascii_uppercase)
             label = tk.Label(frame, text=random_letter)
             label.pack(side=tk.LEFT, padx=5)
-            
+
+            self.progress_bars.insert(0, (progress, frame, delete_button))  # Insert at the top
+            frame.pack(fill=tk.X, pady=2, before=self.frame.winfo_children()[-1] if self.frame.winfo_children() else None)
+
             duration = random.randint(1, 10)  # Random fill time
             threading.Thread(target=self.fill_progress, args=(progress, duration, frame, delete_button), daemon=True).start()
+            
+            time.sleep(30)  # Wait before adding a new progress bar
 
     def fill_progress(self, progress, duration, frame, delete_button):
         for i in range(101):  # Fill progress bar over 'duration' seconds
@@ -83,9 +88,3 @@ class ProgressBarApp:
     def on_close(self):
         self.running = False
         self.root.destroy()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = ProgressBarApp(root)
-    root.protocol("WM_DELETE_WINDOW", app.on_close)
-    root.mainloop()
