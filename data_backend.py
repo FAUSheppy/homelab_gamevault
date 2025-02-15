@@ -100,7 +100,7 @@ class HTTP(DataBackend):
         #print(self.server + HTTP.REMOTE_PATH)
         return self.server + HTTP.REMOTE_PATH
 
-    def get(self, path, cache_dir="", return_content=False):
+    def get(self, path, cache_dir="", return_content=False, wait=False):
 
         print("Getting", path, "cache dir", cache_dir, "return content:", return_content)
 
@@ -133,7 +133,7 @@ class HTTP(DataBackend):
 
         if not os.path.isfile(local_file) or os.stat(local_file).st_size == 0:
 
-            if return_content:
+            if return_content or wait:
 
                 # the content is needed for the UI now and not cached, it's needs to be downloaded synchroniously #
                 # as there cannot be a meaningful UI-draw without it. #
@@ -145,7 +145,11 @@ class HTTP(DataBackend):
 
                 # return the content #
                 print("Content for", fullpath, ":",  r.text)
-                return r.text
+
+                if return_content:
+                    return r.text
+                else:
+                    return local_file
 
             else:
                 print("Async Requested for:", local_file)
