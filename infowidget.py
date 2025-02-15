@@ -17,33 +17,33 @@ import string
 
 class ProgressBarApp:
     def __init__(self, parent):
-        
-        self.root = tk.Toplevel(parent) 
+
+        self.root = tk.Toplevel(parent)
         self.root.title("Dynamic Progress Bars")
-        
+
         self.delete_all_button = tk.Button(self.root, text="Delete All Finished", command=self.delete_all_finished, state=tk.DISABLED)
         self.delete_all_button.pack(pady=5)
-        
+
         self.frame = tk.Frame(self.root)
         self.frame.pack(pady=10)
-        
+
         self.progress_bars = []  # Store tuples of (progressbar, frame, duration, delete_button)
-        
+
         self.running = True
         threading.Thread(target=self.add_progress_bars, daemon=True).start()
 
     def add_progress_bars(self):
         while self.running:
-            
+
             frame = tk.Frame(self.frame)
             frame.pack(fill=tk.X, pady=2)
-            
+
             progress = ttk.Progressbar(frame, length=200, mode='determinate')
             progress.pack(side=tk.LEFT, padx=5)
-            
+
             delete_button = tk.Button(frame, text="Delete", command=lambda f=frame: self.delete_progress(f), state=tk.DISABLED)
             delete_button.pack(side=tk.LEFT, padx=5)
-            
+
             random_letter = random.choice(string.ascii_uppercase)
             label = tk.Label(frame, text=random_letter)
             label.pack(side=tk.LEFT, padx=5)
@@ -53,7 +53,7 @@ class ProgressBarApp:
 
             duration = random.randint(1, 10)  # Random fill time
             threading.Thread(target=self.fill_progress, args=(progress, duration, frame, delete_button), daemon=True).start()
-            
+
             time.sleep(30)  # Wait before adding a new progress bar
 
     def fill_progress(self, progress, duration, frame, delete_button):
@@ -62,9 +62,9 @@ class ProgressBarApp:
             if not progress.winfo_exists():  # Check if progress bar still exists
                 return
             self.root.after(0, progress.config, {"value": i})
-        
+
         self.root.after(0, delete_button.config, {"state": tk.NORMAL})
-        
+
         self.progress_bars.append((progress, frame, duration, delete_button))
         self.update_delete_all_button()
 
@@ -78,7 +78,7 @@ class ProgressBarApp:
             frame.destroy()
         self.progress_bars.clear()
         self.update_delete_all_button()
-    
+
     def update_delete_all_button(self):
         if self.progress_bars:
             self.delete_all_button.config(state=tk.NORMAL)
