@@ -62,5 +62,8 @@ def get_path():
     # If the path is neither a file nor a directory, return an error
     return jsonify({"error": "Invalid path type."}), 400
 
+def create_app():
+    pass
+
 if __name__ == '__main__':
     app.run(debug=True)
