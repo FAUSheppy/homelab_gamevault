@@ -10,6 +10,7 @@ import webbrowser
 import jinja_helper
 import threading
 import sys
+import tkinter
 
 class Software:
 
@@ -188,10 +189,12 @@ class Software:
                 shutil.copy(tmp, dest_dir)
 
         #self.progress_bar_wrapper.set_text(text="")
-        if self.run_button:
-            self.run_button.configure(state=tkinter.NORMAL)
-            self.run_button.configure(fg_color="green")
-
+        try:
+            if self.run_button:
+                self.run_button.configure(state=tkinter.NORMAL)
+                self.run_button.configure(fg_color="green")
+        except tkinter.TclError:
+            print("INFO: No longer in installation view - no button to update")
 
     def run(self):
         '''Run the configured exe for this software'''
