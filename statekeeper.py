@@ -1,6 +1,9 @@
 import requests
 import os
+import sqlalchemy
 import threading
+from db import db, Download
+from sqlalchemy import or_, and_
 
 def add_to_download_queue(url, path):
     '''The download is added to the global queue and downloaded eventually'''
@@ -34,3 +37,32 @@ def _download(url, path):
     else:
 
         raise AssertionError("Non-200 Response for:", url, path, response.status_code, response.text)
+
+def log_begin_download(path):
+
+    session = db.session()
+    print("Current path", path)
+    path_exists = session.query(Download).filter(and_(Download.path==path, Download.finished==False)).first()
+    if path_exists:
+        print("DAFUG", path_exists)
+        print("WTF", path_exists.path)
+        raise AssertionError("ERROR: {} is already downloading.".format(path))
+    else:
+        print("Adding to download log:", path)
+        session.merge(Download(path=path, size=0, type="download", finished=False))
+        session.commit()
+
+    db.close_session()
+
+def log_end_download(path):
+
+    session = db.session()
+    path_exists = session.query(Download).filter(Download.path==path).first()
+    if not path_exists:
+        raise AssertionError("ERROR: {} is not downloading/cannot remove.".format(path))
+    else:
+        print("Removing from download log:", path)
+        session.merge(Download(path=path, size=0, type="download", finished=True))
+        session.commit()
+
+    db.close_session()

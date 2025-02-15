@@ -11,6 +11,7 @@ import jinja_helper
 import threading
 import sys
 import tkinter
+import statekeeper
 
 class Software:
 
@@ -131,7 +132,10 @@ class Software:
         except IndexError:
             print("No main_dir:", path)
             raise AssertionError("No main_dir for this software")
+        
+        statekeeper.log_begin_download(remote_file)
         local_file = self.backend.get(remote_file, self.cache_dir, wait=True)
+        statekeeper.log_end_download(remote_file)
 
         # execute or unpack #
         if local_file.endswith(".exe"):
