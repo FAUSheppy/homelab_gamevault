@@ -17,7 +17,7 @@ def unpack_software(software_cache_path, target_path):
     '''Unpack a downloaded software to the target location'''
     pass
 
-def install_registry_file(registry_file, game_path=None):
+def install_registry_file(registry_file):
     '''Install a given registy file'''
 
     # test path:
@@ -27,13 +27,6 @@ def install_registry_file(registry_file, game_path=None):
         p = subprocess.Popen(["wine64", "start", "regedit", registry_file],
                 subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         print("Running regedit for wine..")
-    else:
-        # windows sucky sucky #
-        if not os.path.isabs(registry_file):
-            registry_file = os.path.join(os.getcwd(), registry_file)
-
-        p = subprocess.Popen(["python", "regedit.py", registry_file],
-                subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
     print(p.communicate())
 
@@ -59,7 +52,7 @@ def run_exe(path, synchronous=False):
         paths = path
 
     # sanity check path is list #
-    if not type(path) == list:
+    if not type(paths) == list:
         raise AssertionError("ERROR: run_exe could not build a list of paths")
 
     if os.name != "nt":
@@ -85,7 +78,10 @@ def run_exe(path, synchronous=False):
             p = subprocess.Popen(["powershell", "-ExecutionPolicy", "Bypass", "-File",
                 "windows_run_as_admin.ps1", json.dumps(paths)],
                 subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-            print(p.communicate())
+            try:
+                print(p.communicate())
+            except UnicodeDecodeError as e:
+                print("WARNING: cannot show you ERROR from exe because output contained illegal characters. This maybe because your refused the admin prompt.")
         else:
             raise e
 

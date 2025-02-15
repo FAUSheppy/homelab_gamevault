@@ -8,6 +8,8 @@ import pathlib
 import tqdm
 import webbrowser
 import jinja_helper
+import threading
+import sys
 
 class Software:
 
@@ -30,10 +32,10 @@ class Software:
             raise e
             self.invalid = True
 
-        if not progress_bar_wrapper:
-            raise AssertionError()
+        # if not progress_bar_wrapper:
+        #     raise AssertionError()
 
-        self.progress_bar_wrapper = progress_bar_wrapper
+        # self.progress_bar_wrapper = progress_bar_wrapper
 
     def _load_from_yaml(self):
 
@@ -90,17 +92,21 @@ class Software:
                 try:
                     zip_ref.extract(member, software_path)
                     count += 1
-                    self.progress_bar_wrapper.get_pb().set(count/len(total_count))
-                    self.progress_bar_wrapper.get_pb().update_idletasks()
-                    self.progress_bar_wrapper.set_text(
-                                    text="Extracting: {:.2f}%".format(count/len(total_count)*100))
+                    #self.progress_bar_wrapper.get_pb().set(count/len(total_count))
+                    #self.progress_bar_wrapper.get_pb().update_idletasks()
+                    #self.progress_bar_wrapper.set_text(
+                    #                text="Extracting: {:.2f}%".format(count/len(total_count)*100))
                 except zipfile.error as e:
                     pass # TODO ???
             #zip_ref.extractall(software_path)
 
-        self.progress_bar_wrapper.set_text(text="Loading..")
-        self.progress_bar_wrapper.update()
+        #self.progress_bar_wrapper.set_text(text="Loading..")
+        #self.progress_bar_wrapper.update()
 
+    def install_async(self):
+
+        thread = threading.Thread(target=self.install)
+        thread.start()
 
     def install(self):
         '''Install this software from the backend'''
@@ -115,8 +121,8 @@ class Software:
             webbrowser.open(self.link_only)
             return
 
-        self.progress_bar_wrapper.set_text(text="Please wait..")
-        self.progress_bar_wrapper.tk_parent.update_idletasks()
+        #self.progress_bar_wrapper.set_text(text="Please wait..")
+        #self.progress_bar_wrapper.tk_parent.update_idletasks()
         path = os.path.join(self.directory, "main_dir")
 
         try:
@@ -124,7 +130,7 @@ class Software:
         except IndexError:
             print("No main_dir:", path)
             raise AssertionError("No main_dir for this software")
-        local_file = self.backend.get(remote_file, self.cache_dir)
+        local_file = self.backend.get(remote_file, self.cache_dir, wait=True)
 
         # execute or unpack #
         if local_file.endswith(".exe"):
@@ -143,8 +149,10 @@ class Software:
                 print("Install dir Registry:", target_install_dir)
                 path = jinja_helper.render_path(path, target_install_dir, self.directory)
 
-            admin_run_list.append(path)
-            # localaction.install_registry_file(path)
+            if sys.platform == "win32":
+                admin_run_list.append(path)
+            else:
+                localaction.install_registry_file(path)
 
         # install dependencies #
         if self.dependencies:
@@ -179,7 +187,7 @@ class Software:
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.copy(tmp, dest_dir)
 
-        self.progress_bar_wrapper.set_text(text="")
+        #self.progress_bar_wrapper.set_text(text="")
         if self.run_button:
             self.run_button.configure(state=tkinter.NORMAL)
             self.run_button.configure(fg_color="green")

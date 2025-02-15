@@ -138,15 +138,13 @@ class HTTP(DataBackend):
                 # the content is needed for the UI now and not cached, it's needs to be downloaded synchroniously #
                 # as there cannot be a meaningful UI-draw without it. #
                 r = requests.get(self._get_url(), params={ "path" : path, "as_string": True })
-                print("Request Content:", r.text)
+
                 # cache the download imediatelly #
                 with open(local_file, encoding="utf-8", mode="w") as f:
-                    f.write( r.text)
+                    f.write(r.text)
 
-                # return the content #
-                print("Content for", fullpath, ":",  r.text)
-
-                if return_content:
+                if return_content:                    
+                    print("Content for", fullpath, ":",  r.text)
                     return r.text
                 else:
                     return local_file
