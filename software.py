@@ -53,6 +53,7 @@ class Software:
         self.extra_files = meta.get("extra_files")
         self.run_exe = meta.get("run_exe")
         self.installer = meta.get("installer")
+        self.installer_no_admin = meta.get("installer_no_admin")
 
         self.pictures = [ self.backend.get(pp, self.cache_dir) for pp in
                 self.backend.list(os.path.join(self.directory, "pictures"), fullpaths=True) ]
@@ -104,6 +105,9 @@ class Software:
     def install(self):
         '''Install this software from the backend'''
 
+        # things to execute #
+        admin_run_list = []
+
         print("Installing:", self.title, self.directory)
 
         # handle link-only software #
@@ -139,7 +143,8 @@ class Software:
                 print("Install dir Registry:", target_install_dir)
                 path = jinja_helper.render_path(path, target_install_dir, self.directory)
 
-            localaction.install_registry_file(path)
+            admin_run_list.append(path)
+            # localaction.install_registry_file(path)
 
         # install dependencies #
         if self.dependencies:
@@ -157,12 +162,19 @@ class Software:
 
 
             print("Running installer:", installer_path)
-            localaction.run_exe(installer_path)
+            if not self.installer_no_admin:
+                admin_run_list.append(installer_path)
+            else:
+                localaction.run_exe(installer_path)
+
+        if admin_run_list:
+            print("admin list", admin_run_list)
+            localaction.run_exe(admin_run_list)
 
         # install gamefiles #
         if self.extra_files:
             for src, dest in self.extra_files.items():
-                tmp = self.backend.get(os.path.join(self.directory, "extra_files", src), self.cache_dir)
+                tmp = self.backend.get(os.path.join(self.directory, "extra_files", src), self.cache_dir, wait=True)
                 dest_dir = os.path.expandvars(dest)
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.copy(tmp, dest_dir)

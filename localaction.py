@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import os
+import json
 
 # windows imports #
 if os.name == "nt":
@@ -52,6 +53,15 @@ def resolve_lnk(lnk_file_path):
 def run_exe(path, synchronous=False):
     '''Launches a given software'''
 
+    if type(path) == str:
+        paths = [path]
+    else:
+        paths = path
+
+    # sanity check path is list #
+    if not type(path) == list:
+        raise AssertionError("ERROR: run_exe could not build a list of paths")
+
     if os.name != "nt":
         if ".lnk" in path:
             subprocess.Popen(["wine64", "start", path])
@@ -62,16 +72,18 @@ def run_exe(path, synchronous=False):
     if synchronous:
         raise NotImplementedError("SYNC not yet implemented")
 
-    if path.endswith(".lnk"):
-        path = resolve_lnk(path)
+    paths = [resolve_lnk(p) if p.endswith(".lnk") else p for p in paths]
 
-    print("Executing:", path)
+    print("Executing:", paths)
 
     try:
-        subprocess.Popen(path, cwd=os.path.dirname(path))
+        if paths[0].endswith(".reg"):
+            raise OSError("WinError 740")
+        subprocess.Popen(path, cwd=os.path.dirname(paths[0])) # TODO fix this BS
     except OSError as e:
         if "WinError 740" in str(e):
-            p = subprocess.Popen(["powershell", "-ExecutionPolicy", "Bypass", "-File", "windows_run_as_admin.ps1", path],
+            p = subprocess.Popen(["powershell", "-ExecutionPolicy", "Bypass", "-File",
+                "windows_run_as_admin.ps1", json.dumps(paths)],
                 subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             print(p.communicate())
         else:
