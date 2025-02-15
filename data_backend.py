@@ -177,6 +177,7 @@ class HTTP(DataBackend):
         else:
 
             r = requests.get(self._get_url(), params={ "path" : path })
+            r.raise_for_status()
             #print(r, r.status_code, r.content)
             paths = r.json()["contents"]
 

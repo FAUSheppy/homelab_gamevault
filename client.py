@@ -71,7 +71,7 @@ def dropdown_changed(dropdown_var, user_entry, password_entry, server_path_entry
         user_entry.configure(fg_color="#CCCCCC")
         server_path_entry.delete(0, customtkinter.END)
         server_path_entry.insert(0, "C:/path/to/game/mount/")
-    else:
+    elif dropdown_var == "FTP/FTPS":
         user_entry.configure(state=customtkinter.NORMAL)
         password_entry.configure(state=customtkinter.NORMAL)
         if non_disabled_entry_color: # else first run and nothing to do
@@ -79,6 +79,14 @@ def dropdown_changed(dropdown_var, user_entry, password_entry, server_path_entry
             user_entry.configure(fg_color=non_disabled_entry_color)
         server_path_entry.delete(0, customtkinter.END)
         server_path_entry.insert(0, "ftp://server:port/path or ftps://server:port/path")
+    else:
+        user_entry.configure(state=customtkinter.NORMAL)
+        password_entry.configure(state=customtkinter.NORMAL)
+        if non_disabled_entry_color: # else first run and nothing to do
+            password_entry.configure(fg_color=non_disabled_entry_color)
+            user_entry.configure(fg_color=non_disabled_entry_color)
+        server_path_entry.delete(0, customtkinter.END)
+
 
     install_dir_entry.delete(0, customtkinter.END)
     install_dir_entry.insert(0, "./install-dir")
@@ -117,10 +125,10 @@ def get_config_inputs():
     install_dir_entry.grid(row=4, column=1, padx=10, pady=5, sticky="ew", columnspan=2)
 
     # Dropdown
-    dropdown_var = customtkinter.StringVar(value="Local Filesystem")
+    dropdown_var = customtkinter.StringVar(value="HTTP/HTTPS")
     dropdown_label = customtkinter.CTkLabel(input_window, text="Select option:")
     dropdown_label.grid(row=0, column=0, sticky="w", padx=10, pady=5)
-    dropdown = customtkinter.CTkOptionMenu(input_window, variable=dropdown_var, values=["FTP/FTPS", "Local Filesystem"],
+    dropdown = customtkinter.CTkOptionMenu(input_window, variable=dropdown_var, values=["HTTP/HTTPS", "FTP/FTPS", "Local Filesystem"],
         command=lambda dropdown_var=dropdown_var, user_entry=user_entry, password_entry=password_entry,
                         server_path_entry=server_path_entry, install_dir_entry=install_dir_entry:
                         dropdown_changed(dropdown_var, user_entry, password_entry, server_path_entry, install_dir_entry))
@@ -311,7 +319,6 @@ if __name__ == "__main__":
 
     if not os.path.isfile(CONFIG_FILE):
         get_config_inputs()
-        print("wtf")
 
     # load config #
     with open(CONFIG_FILE) as f:
@@ -332,6 +339,13 @@ if __name__ == "__main__":
         if backend_type == "FTP/FTPS":
             remote_root_dir = "/" + config_loaded["Server/Path:"].split("://")[1].split("/", 1)[1]
             server = config_loaded["Server/Path:"][:-len(remote_root_dir)]
+        elif backend_type == "HTTP/HTTPS":
+            server = config_loaded["Server/Path:"]
+            remote_root_dir = None
+            if not server.startswith("http://") or "https://":
+                server = "http://" + server
+            if not ":" in server.split("://")[1]:
+                server = server + ":5000"
         elif backend_type == "Local Filesystem":
             remote_root_dir = config_loaded["Server/Path:"]
             server = None
@@ -342,8 +356,8 @@ if __name__ == "__main__":
         print(user, password, install_dir, remote_root_dir, server, config_loaded["Server/Path:"])
 
         # add db backend #
-        if True:
-            db = data_backend.HTTP(None, None, install_dir, remote_root_dir="./", server="http://localhost:5000", progress_bar_wrapper=pgw, tkinter_root=app)
+        if backend_type == "HTTP/HTTPS":
+            db = data_backend.HTTP(None, None, install_dir, remote_root_dir="./", server=server, progress_bar_wrapper=pgw, tkinter_root=app)
         elif backend_type == "FTP/FTPS":
             db = data_backend.FTP(user, password, install_dir, server=server,
                 remote_root_dir=remote_root_dir, progress_bar_wrapper=pgw, tkinter_root=app)
