@@ -99,20 +99,8 @@ class HTTP(DataBackend):
     def _get_url(self):
         #print(self.server + HTTP.REMOTE_PATH)
         return self.server + HTTP.REMOTE_PATH
-
-    def get(self, path, cache_dir="", return_content=False, wait=False):
-
-        print("Getting", path, "cache dir", cache_dir, "return content:", return_content)
-
-        if cache_dir is None:
-            print("Setting cache dir from backend default", "cur:", cache_dir, "new (default):", self.cache_dir)
-            cache_dir = self.cache_dir
-
-        # check the load cache dir #
-        if cache_dir:
-            self._create_cache_dir(cache_dir)
-        elif not cache_dir and not return_content:
-            AssertionError("Need to set either cache_dir or return_content!")
+ 
+    def get_local_target(self, path):
 
         # prepend root dir if not given #
         fullpath = path
@@ -120,7 +108,30 @@ class HTTP(DataBackend):
             fullpath = os.path.join(self.remote_root_dir, path)
 
         fullpath = fullpath.replace("\\", "/")
-        local_file = os.path.join(cache_dir, fullpath)
+        local_file = os.path.join(self.cache_dir, fullpath)
+        print("Local Target is", local_file)
+        return local_file
+
+    def get(self, path, cache_dir=None, return_content=False, wait=False):
+
+        print("Getting", path, "cache dir", cache_dir, "return content:", return_content)
+
+        if cache_dir is None:
+            print("Setting cache dir from backend default", "cur:", cache_dir, "new (default):", self.cache_dir)
+            cache_dir = self.cache_dir
+
+        # fix cache path reuse #
+        if path.startswith(cache_dir):
+            path = path[len(cache_dir):]
+            print("Fixed path to not duble include cache dir, path:", path)
+
+        # check the load cache dir #
+        if cache_dir:
+            self._create_cache_dir(cache_dir)
+        elif not cache_dir and not return_content:
+            AssertionError("Need to set either cache_dir or return_content!")
+
+        local_file = self.get_local_target(path)
         local_dir = os.path.dirname(local_file)
 
         # sanity check and create directory #
@@ -129,7 +140,7 @@ class HTTP(DataBackend):
         else:
             os.makedirs(local_dir, exist_ok=True)
 
-        print("Requiring:", fullpath)
+        print("Requiring:", path)
 
         if not os.path.isfile(local_file) or os.stat(local_file).st_size == 0:
 
@@ -137,14 +148,24 @@ class HTTP(DataBackend):
 
                 # the content is needed for the UI now and not cached, it's needs to be downloaded synchroniously #
                 # as there cannot be a meaningful UI-draw without it. #
-                r = requests.get(self._get_url(), params={ "path" : path, "as_string": True })
+                # THIS IS THE OLD WAY
+                # r = requests.get(self._get_url(), params={ "path" : path, "as_string": True })
 
-                # cache the download imediatelly #
-                with open(local_file, encoding="utf-8", mode="w") as f:
-                    f.write(r.text)
+                # # cache the download imediatelly #
+                # with open(local_file, encoding="utf-8", mode="w") as f:
+                #     f.write(r.text)
+
+                # this is with streaming
+                chunk_size = 1024 * 1024  * 5 # 5MB
+                r = requests.get(self._get_url(), params={"path": path, "as_string": True}, stream=True)
+
+                with open(local_file, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=chunk_size, decode_unicode=True):
+                        if chunk:
+                            f.write(chunk)
 
                 if return_content:                    
-                    print("Content for", fullpath, ":",  r.text)
+                    print("Content for", path, ":",  r.text)
                     return r.text
                 else:
                     return local_file

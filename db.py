@@ -9,11 +9,20 @@ class Download(Base):
     __tablename__ = 'files'
 
     path = Column(String, primary_key=True)
+    local_path = Column(String)
+    url = Column(String)
     size = Column(Integer)
     type = Column(String)
     finished = Column(Boolean)
 
+    def __eq__(self, other):
+        return self.path == other.path
+    
+    def __hash__(self):
+        return hash(self.path)
+
 class Database:
+
     def __init__(self, db_url="sqlite:///database.db"):
         self.engine = create_engine(db_url, echo=True)
         self.session_factory = sessionmaker(bind=self.engine)

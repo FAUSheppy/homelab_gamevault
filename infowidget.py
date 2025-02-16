@@ -14,6 +14,8 @@ import threading
 import random
 import time
 import string
+import statekeeper
+import os
 
 class ProgressBarApp:
     def __init__(self, parent):
@@ -33,39 +35,65 @@ class ProgressBarApp:
         threading.Thread(target=self.add_progress_bars, daemon=True).start()
 
     def add_progress_bars(self):
+
+        already_tracked = set()
         while self.running:
 
-            frame = tk.Frame(self.frame)
-            frame.pack(fill=tk.X, pady=2)
+            downloads = set(statekeeper.get_download())
+            new = downloads - already_tracked
+            already_tracked |= set(downloads)
 
-            progress = ttk.Progressbar(frame, length=200, mode='determinate')
-            progress.pack(side=tk.LEFT, padx=5)
+            for element in new:
 
-            delete_button = tk.Button(frame, text="Delete", command=lambda f=frame: self.delete_progress(f), state=tk.DISABLED)
-            delete_button.pack(side=tk.LEFT, padx=5)
+                frame = tk.Frame(self.frame)
+                frame.pack(fill=tk.X, pady=2)
 
-            random_letter = random.choice(string.ascii_uppercase)
-            label = tk.Label(frame, text=random_letter)
-            label.pack(side=tk.LEFT, padx=5)
+                progress = ttk.Progressbar(frame, length=200, mode='determinate')
+                progress.pack(side=tk.LEFT, padx=5)
 
-            self.progress_bars.insert(0, (progress, frame, delete_button))  # Insert at the top
-            frame.pack(fill=tk.X, pady=2, before=self.frame.winfo_children()[-1] if self.frame.winfo_children() else None)
+                delete_button = tk.Button(frame, text="Delete", command=lambda f=frame: self.delete_progress(f), state=tk.DISABLED)
+                delete_button.pack(side=tk.LEFT, padx=5)
 
-            duration = random.randint(1, 10)  # Random fill time
-            threading.Thread(target=self.fill_progress, args=(progress, duration, frame, delete_button), daemon=True).start()
+                label = tk.Label(frame, text=os.path.basename(element.path))
+                label.pack(side=tk.LEFT, padx=5)
 
-            time.sleep(30)  # Wait before adding a new progress bar
+                self.progress_bars.insert(0, (progress, frame, delete_button))  # Insert at the top
+                frame.pack(fill=tk.X, pady=2, before=self.frame.winfo_children()[-1] if self.frame.winfo_children() else None)
 
-    def fill_progress(self, progress, duration, frame, delete_button):
-        for i in range(101):  # Fill progress bar over 'duration' seconds
-            time.sleep(duration / 100)
+                print("Starting tracker for", element.path)
+                threading.Thread(target=self.fill_progress, args=(progress, element.path, frame, delete_button), daemon=True).start()
+
+            time.sleep(2)  # Wait before adding a new progress bar
+
+    def fill_progress(self, progress, path, frame, delete_button):
+
+        fail_count = 0
+        while True:
+
             if not progress.winfo_exists():  # Check if progress bar still exists
                 return
-            self.root.after(0, progress.config, {"value": i})
 
+            try:
+                percent_filled = statekeeper.get_percent_filled(path)
+            except OSError as e:
+                fail_count += 1
+                if fail_count > 6:
+                    raise e
+                else:
+                    time.sleep(1)
+                    continue
+
+            print("Percent filled:", percent_filled, path)
+            if not percent_filled or percent_filled >= 99.9:
+                self.root.after(0, progress.config, { "value" : 100 })
+                break
+            else:
+                self.root.after(0, progress.config, { "value" : percent_filled })                
+                time.sleep(0.5)
+
+        # handle finished download #
         self.root.after(0, delete_button.config, {"state": tk.NORMAL})
-
-        self.progress_bars.append((progress, frame, duration, delete_button))
+        self.progress_bars.append((progress, frame, path, delete_button))
         self.update_delete_all_button()
 
     def delete_progress(self, frame):
