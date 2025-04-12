@@ -59,6 +59,7 @@ class Software:
         self.run_exe = meta.get("run_exe")
         self.installer = meta.get("installer")
         self.installer_no_admin = meta.get("installer_no_admin")
+        self.age_limit = meta.get("age_limit") or 20
 
         self.pictures = [ self.backend.get(pp, self.cache_dir) for pp in
                 self.backend.list(os.path.join(self.directory, "pictures"), fullpaths=True) ]

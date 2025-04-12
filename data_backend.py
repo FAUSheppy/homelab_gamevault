@@ -16,7 +16,7 @@ class DataBackend:
         os.makedirs(cache_dir, exist_ok=True)
 
     def __init__(self, user, password, install_dir, server=None, remote_root_dir=None,
-                    progress_bar_wrapper=None, tkinter_root=None):
+                    progress_bar_wrapper=None, tkinter_root=None, hide_above_age=100):
 
         self.user = user
         self.password = password
@@ -26,6 +26,7 @@ class DataBackend:
         self.progress_bar_wrapper = progress_bar_wrapper
         self.root = tkinter_root
         self.cache_dir = "./cache/"
+        self.hide_above_age = hide_above_age
 
     def get(self, path, return_content=False):
         '''Return the contents of this path'''
@@ -163,7 +164,7 @@ class HTTP(DataBackend):
                 #     f.write(r.text)
 
                 # this is with streaming
-                chunk_size = 1024 * 1024  * 50 # 50MB
+                chunk_size = 1024 * 1024  * 5 # 5MB
                 r = requests.get(self._get_url(), params={"path": path, "as_string": True}, stream=True)
                 r.raise_for_status()
 
@@ -264,4 +265,12 @@ class HTTP(DataBackend):
         print("Software List:", software_list)
         print("Invalid:", list(filter(lambda x: x.invalid, software_list)))
         print("Valid:", list(filter(lambda x: not x.invalid, software_list)))
-        return list(filter(lambda x: not x.invalid, software_list))
+
+        # filter valid #
+        results_valid = list(filter(lambda x: not x.invalid, software_list))
+
+        # filer age #
+        print("Age limit set to", self.hide_above_age, "games have", [x.age_limit for x in software_list])
+        results_with_age = list(filter(lambda x: x.age_limit <= self.hide_above_age, results_valid))
+
+        return results_with_age

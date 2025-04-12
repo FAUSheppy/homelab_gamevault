@@ -338,6 +338,8 @@ if __name__ == "__main__":
         password = config_loaded.get("Password:")
         install_dir = config_loaded["Install dir:"]
         backend_type = config_loaded["Select option:"]
+        hide_above_age = config_loaded.get("hide_above_age") or 100
+
 
         # fix abs path if not set #
         if os.path.abspath(install_dir):
@@ -365,7 +367,8 @@ if __name__ == "__main__":
 
         # add db backend #
         if backend_type == "HTTP/HTTPS":
-            db = data_backend.HTTP(None, None, install_dir, remote_root_dir="./", server=server, progress_bar_wrapper=pgw, tkinter_root=app)
+            db = data_backend.HTTP(None, None, install_dir, remote_root_dir="./", server=server, progress_bar_wrapper=pgw,
+                                    tkinter_root=app, hide_above_age=hide_above_age)
         elif backend_type == "FTP/FTPS":
             db = data_backend.FTP(user, password, install_dir, server=server,
                 remote_root_dir=remote_root_dir, progress_bar_wrapper=pgw, tkinter_root=app)

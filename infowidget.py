@@ -107,7 +107,7 @@ class ProgressBarApp:
                 same_size_count += 1
             else:
                 same_size_count = 0
-            if same_size_count > 5:
+            if same_size_count > 100:
                 self.root.after(0, delete_button.config, {"state": tk.NORMAL, "text": "Failed - Delete file manually!"})
                 self.progress_bars.append((progress, frame, path, delete_button))
                 self.update_delete_all_button()
