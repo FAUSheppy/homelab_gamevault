@@ -34,6 +34,7 @@ db = None # app data-backend (i.e. LocalFS or FTP)
 
 CONFIG_FILE = "gamevault_config.json"
 
+
 def close_input_window(input_window):
     '''Close the config window and save the settings'''
 
@@ -188,7 +189,7 @@ def load_main():
     app.title("Lan Vault: Overview")
 
     if not infowidget_window:
-        infowidget_window = infowidget.ProgressBarApp(app)
+        infowidget_window = infowidget.ProgressBarApp(app, data_backend=db)
 
     # navbar should not expand when window is resized
     app.grid_rowconfigure(0, weight=0)

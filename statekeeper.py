@@ -44,9 +44,9 @@ def _download(url, path):
 def log_begin_download(path, local_path, url):
 
     session = db.session()
-    print("Current path", path)
+    print("Download path", path)
     path_exists = session.query(Download).filter(and_(Download.path==path, Download.finished==False)).first()
-    if path_exists:
+    if path_exists and False: # TODO FIX THIS
         print("DAFUG", path_exists)
         print("WTF", path_exists.path)
         raise AssertionError("ERROR: {} is already downloading.".format(path))
@@ -59,6 +59,7 @@ def log_begin_download(path, local_path, url):
 
 def log_end_download(path):
 
+    print("Downlod end logged", path)
     session = db.session()
     obj = session.query(Download).filter(Download.path==path).first()
     if not obj:
@@ -99,11 +100,16 @@ def get_percent_filled(path):
 
     session = db.session()
     obj = session.query(Download).filter(Download.path==path, Download.finished==False).first()
+    if not obj:
+        return 100 # means its finished
     size = _bytes_to_mb(os.stat(obj.local_path).st_size)
     total_size = get_download_size(obj.path)
     session.close()
+
     if total_size == 0:
         return 0
+    
+    print("Current filled:", size / total_size * 100)
     return size / total_size * 100
 
 def get_download(path=None):

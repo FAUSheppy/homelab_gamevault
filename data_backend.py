@@ -111,6 +111,12 @@ class HTTP(DataBackend):
         local_file = os.path.join(self.cache_dir, fullpath)
         print("Local Target is", local_file)
         return local_file
+    
+    def local_delete_cache_file(self, path, cache_dir=None):
+        '''Delete a local cache file'''
+
+        print("WARNING: removing:", self.get_local_target(path))
+        os.remove(self.get_local_target(path))
 
     def get(self, path, cache_dir=None, return_content=False, wait=False):
 
@@ -146,6 +152,7 @@ class HTTP(DataBackend):
 
             if return_content or wait:
 
+                print("Sync Requested")
                 # the content is needed for the UI now and not cached, it's needs to be downloaded synchroniously #
                 # as there cannot be a meaningful UI-draw without it. #
                 # THIS IS THE OLD WAY
@@ -156,13 +163,30 @@ class HTTP(DataBackend):
                 #     f.write(r.text)
 
                 # this is with streaming
-                chunk_size = 1024 * 1024  * 5 # 5MB
+                chunk_size = 1024 * 1024  * 50 # 50MB
                 r = requests.get(self._get_url(), params={"path": path, "as_string": True}, stream=True)
+                r.raise_for_status()
 
-                with open(local_file, "wb") as f:
+                if path.endswith(".reg") or path.endswith(".txt"):
+                    TYPE = "w"
+                else:
+                    TYPE = "wb"
+
+                with open(local_file, TYPE) as f:
+                    count = 0
                     for chunk in r.iter_content(chunk_size=chunk_size, decode_unicode=True):
+                        
+                        print(f"Doing chunk.. {chunk_size*count}")
                         if chunk:
-                            f.write(chunk)
+                            
+                            try:
+                                f.write(chunk)
+                            except TypeError as e:
+                                print("Cannot write:", chunk, "..to ", path, " because it is the wrong type.", e)
+                                raise e
+                            f.flush()
+
+                        count += 1
 
                 if return_content:                    
                     print("Content for", path, ":",  r.text)

@@ -18,8 +18,10 @@ import statekeeper
 import os
 
 class ProgressBarApp:
-    def __init__(self, parent):
+    def __init__(self, parent, data_backend):
 
+        self.data_backend = data_backend
+        self.parent = parent
         self.root = tk.Toplevel(parent)
         self.root.title("Dynamic Progress Bars")
 
@@ -32,43 +34,50 @@ class ProgressBarApp:
         self.progress_bars = []  # Store tuples of (progressbar, frame, duration, delete_button)
 
         self.running = True
-        threading.Thread(target=self.add_progress_bars, daemon=True).start()
+        self.root.after(0, self.start_tracking_progress_bars)
 
-    def add_progress_bars(self):
+    def start_tracking_progress_bars(self):
 
-        already_tracked = set()
-        while self.running:
+        self.already_tracked = set()
+        self.check_for_new_progress_bars()
 
-            downloads = set(statekeeper.get_download())
-            new = downloads - already_tracked
-            already_tracked |= set(downloads)
+    def check_for_new_progress_bars(self):
 
-            for element in new:
+        downloads = set(statekeeper.get_download())
+        new = downloads - self.already_tracked
+        self.already_tracked |= downloads
 
-                frame = tk.Frame(self.frame)
-                frame.pack(fill=tk.X, pady=2)
+        for element in new:
+            frame = tk.Frame(self.frame)
+            frame.pack(fill=tk.X, pady=2)
 
-                progress = ttk.Progressbar(frame, length=200, mode='determinate')
-                progress.pack(side=tk.LEFT, padx=5)
+            progress = ttk.Progressbar(frame, length=200, mode='determinate')
+            progress.pack(side=tk.LEFT, padx=5)
 
-                delete_button = tk.Button(frame, text="Delete", command=lambda f=frame: self.delete_progress(f), state=tk.DISABLED)
-                delete_button.pack(side=tk.LEFT, padx=5)
+            delete_button = tk.Button(frame, text="Delete", command=lambda f=frame: self.delete_progress(f), state=tk.DISABLED)
+            delete_button.pack(side=tk.LEFT, padx=5)
 
-                label = tk.Label(frame, text=os.path.basename(element.path))
-                label.pack(side=tk.LEFT, padx=5)
+            label = tk.Label(frame, text=os.path.basename(element.path))
+            label.pack(side=tk.LEFT, padx=5)
 
-                self.progress_bars.insert(0, (progress, frame, delete_button))  # Insert at the top
-                frame.pack(fill=tk.X, pady=2, before=self.frame.winfo_children()[-1] if self.frame.winfo_children() else None)
+            self.progress_bars.insert(0, (progress, frame, delete_button))  # Insert at the top
+            frame.pack(fill=tk.X, pady=2, before=self.frame.winfo_children()[-1] if self.frame.winfo_children() else None)
 
-                print("Starting tracker for", element.path)
-                threading.Thread(target=self.fill_progress, args=(progress, element.path, frame, delete_button), daemon=True).start()
+            print("Starting tracker for", element.path)
+            threading.Thread(target=self.fill_progress, args=(progress, element.path, frame, delete_button), daemon=True).start()
 
-            time.sleep(2)  # Wait before adding a new progress bar
+        # Schedule the next check in 2 seconds
+        if self.running:
+            self.root.after(2000, self.check_for_new_progress_bars)
 
     def fill_progress(self, progress, path, frame, delete_button):
 
         fail_count = 0
+        same_size_count = 0
+        prev_precent = 0
         while True:
+
+            print("Checking download progress..")
 
             if not progress.winfo_exists():  # Check if progress bar still exists
                 return
@@ -84,12 +93,28 @@ class ProgressBarApp:
                     continue
 
             print("Percent filled:", percent_filled, path)
-            if not percent_filled or percent_filled >= 99.9:
+            if percent_filled >= 99.9:
                 self.root.after(0, progress.config, { "value" : 100 })
+                print("Finished", path)
                 break
             else:
                 self.root.after(0, progress.config, { "value" : percent_filled })                
                 time.sleep(0.5)
+
+            # check for stuck downloads #
+            print("same size count", same_size_count)
+            if prev_precent == percent_filled:
+                same_size_count += 1
+            else:
+                same_size_count = 0
+            if same_size_count > 5:
+                self.root.after(0, delete_button.config, {"state": tk.NORMAL, "text": "Failed - Delete file manually!"})
+                self.progress_bars.append((progress, frame, path, delete_button))
+                self.update_delete_all_button()
+                statekeeper.log_end_download(path)
+                self.data_backend.local_delete_cache_file(path)
+                break
+            prev_precent = percent_filled
 
         # handle finished download #
         self.root.after(0, delete_button.config, {"state": tk.NORMAL})
@@ -98,7 +123,7 @@ class ProgressBarApp:
 
     def delete_progress(self, frame):
         frame.destroy()
-        self.progress_bars = [(p, f, d, b) for p, f, d, b in self.progress_bars if f != frame]
+        self.progress_bars = [(p, f, d) for p, f, d in self.progress_bars if f != frame]
         self.update_delete_all_button()
 
     def delete_all_finished(self):

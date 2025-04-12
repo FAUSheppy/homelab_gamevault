@@ -12,6 +12,7 @@ import threading
 import sys
 import tkinter
 import statekeeper
+from tkinter import messagebox
 
 class Software:
 
@@ -82,8 +83,16 @@ class Software:
         '''Extract a cached, downloaded zip to the target location'''
 
         software_path = os.path.join(target, self.title)
+
         if os.path.isdir(software_path):
-            return # TODO better skip
+            overwrite = messagebox.askyesno(
+                "Overwrite Existing Directory",
+                f"The directory '{software_path}' already exists.\nDo you want to overwrite it?"
+            )
+            if not overwrite:
+                print("Skipping install as instructed by user...")
+                return
+
         os.makedirs(software_path, exist_ok=True)
 
         with zipfile.ZipFile(cache_src, 'r') as zip_ref:
@@ -99,6 +108,7 @@ class Software:
                     #self.progress_bar_wrapper.set_text(
                     #                text="Extracting: {:.2f}%".format(count/len(total_count)*100))
                 except zipfile.error as e:
+                    print(e)
                     pass # TODO ???
             #zip_ref.extractall(software_path)
 
@@ -137,13 +147,17 @@ class Software:
         local_file = self.backend.get(remote_file, self.cache_dir, wait=True)
         statekeeper.log_end_download(remote_file)
 
+        print("Deciding on installer...")
+
         # execute or unpack #
         if local_file.endswith(".exe"):
+            print("Target is an executable.. running as installer.")
             if os.name != "nt" and not os.path.isabs(local_file):
                 # need abs path for wine #
                 local_file = os.path.join(os.getcwd(), local_file)
             localaction.run_exe(local_file)
         elif local_file.endswith(".zip"):
+            print("Target is a zip.. unpacking first.")
             self._extract_to_target(local_file, self.backend.install_dir)
 
         # download & install registry files #

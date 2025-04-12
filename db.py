@@ -4,6 +4,9 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 Base = declarative_base()
 
+import logging
+logging.basicConfig()
+logging.getLogger('sqlalchemy').setLevel(logging.ERROR)
 class Download(Base):
 
     __tablename__ = 'files'
@@ -24,7 +27,8 @@ class Download(Base):
 class Database:
 
     def __init__(self, db_url="sqlite:///database.db"):
-        self.engine = create_engine(db_url, echo=True)
+
+        self.engine = create_engine(db_url, echo=False)
         self.session_factory = sessionmaker(bind=self.engine)
         self.Session = scoped_session(self.session_factory)  # Thread-safe sessions
 
