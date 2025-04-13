@@ -163,7 +163,7 @@ class Software:
 
         # download & install registry files #
         for rf in self.reg_files:
-            path = self.backend.get(rf, cache_dir=self.cache_dir)
+            path = self.backend.get(rf, cache_dir=self.cache_dir, wait=True)
             if path.endswith(".j2"):
                 target_install_dir = os.path.join(self.backend.install_dir, self.title)
                 print("Install dir Registry:", target_install_dir)
