@@ -168,7 +168,7 @@ class HTTP(DataBackend):
                 r = requests.get(self._get_url(), params={"path": path, "as_string": True}, stream=True)
                 r.raise_for_status()
 
-                if path.endswith(".reg") or path.endswith(".txt"):
+                if path.endswith(".txt"):
                     TYPE = "w"
                 else:
                     TYPE = "wb"
