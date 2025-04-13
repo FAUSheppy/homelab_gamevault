@@ -25,8 +25,10 @@ def show_large_picture(app, path):
 
     large_image.place(x=30, y=30)
 
-def create_details_page(app, software, backswitch_function):
+def create_details_page(app, software, backswitch_function, infowidget_window):
     '''Create the details page for a software and return its elements for later destruction'''
+
+    infowidget_window.root.grid(row=1, column=0, sticky="n")
 
     elements = []
 
@@ -42,7 +44,7 @@ def create_details_page(app, software, backswitch_function):
 
     # navbar #
     navbar = customtkinter.CTkFrame(app, fg_color="transparent")
-    navbar.grid(column=0, row=0, padx=10, pady=5, sticky="ew")
+    navbar.grid(column=1, row=0, padx=10, pady=5, sticky="ew")
 
     # back button
     back_button = customtkinter.CTkButton(navbar, text="Back", command=backswitch_function)
@@ -65,7 +67,7 @@ def create_details_page(app, software, backswitch_function):
     thumbnail_image = customtkinter.CTkButton(app, text="", image=img, width=500, height=700,
                     fg_color="transparent", hover_color="black", corner_radius=0,
                     command=lambda path=path: show_large_picture(app, path))
-    thumbnail_image.grid(column=0, row=1, padx=10)
+    thumbnail_image.grid(column=1, row=1, padx=10)
     elements.append(thumbnail_image)
 
     # fonts #
@@ -74,7 +76,7 @@ def create_details_page(app, software, backswitch_function):
 
     # info box #
     info_frame = customtkinter.CTkFrame(app, width=500)
-    info_frame.grid(column=1, row=1, sticky="nswe", padx=10)
+    info_frame.grid(column=2, row=1, sticky="nswe", padx=10)
     elements.append(info_frame)
 
     # title #

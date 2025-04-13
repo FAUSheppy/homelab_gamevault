@@ -8,7 +8,7 @@
 # update list and widget
 
 # update list and widget
-import tkinter as tk
+import customtkinter as ctk
 from tkinter import ttk
 import threading
 import random
@@ -22,13 +22,16 @@ class ProgressBarApp:
 
         self.data_backend = data_backend
         self.parent = parent
-        self.root = tk.Toplevel(parent)
-        self.root.title("Dynamic Progress Bars")
+        self.root = ctk.CTkFrame(parent)
+        #self.root.title("Dynamic Progress Bars")
 
-        self.delete_all_button = tk.Button(self.root, text="Delete All Finished", command=self.delete_all_finished, state=tk.DISABLED)
+        self.delete_all_button = ctk.CTkLabel(self.root, text="Downloads")
         self.delete_all_button.pack(pady=5)
 
-        self.frame = tk.Frame(self.root)
+        self.delete_all_button = ctk.CTkButton(self.root, text="Delete All Finished", command=self.delete_all_finished, state=ctk.DISABLED)
+        self.delete_all_button.pack(pady=5)
+
+        self.frame = ctk.CTkFrame(self.root)
         self.frame.pack(pady=10)
 
         self.progress_bars = []  # Store tuples of (progressbar, frame, duration, delete_button)
@@ -48,20 +51,20 @@ class ProgressBarApp:
         self.already_tracked |= downloads
 
         for element in new:
-            frame = tk.Frame(self.frame)
-            frame.pack(fill=tk.X, pady=2)
+            frame = ctk.CTkFrame(self.frame)
+            frame.pack(fill=ctk.X, pady=2)
 
             progress = ttk.Progressbar(frame, length=200, mode='determinate')
-            progress.pack(side=tk.LEFT, padx=5)
+            progress.pack(side=ctk.LEFT, padx=5)
 
-            delete_button = tk.Button(frame, text="Delete", command=lambda f=frame: self.delete_progress(f), state=tk.DISABLED)
-            delete_button.pack(side=tk.LEFT, padx=5)
+            delete_button = ctk.CTkButton(frame, text="Delete", command=lambda f=frame: self.delete_progress(f), state=ctk.DISABLED)
+            delete_button.pack(side=ctk.LEFT, padx=5)
 
-            label = tk.Label(frame, text=os.path.basename(element.path))
-            label.pack(side=tk.LEFT, padx=5)
+            label = ctk.CTkLabel(frame, text=os.path.basename(element.path))
+            label.pack(side=ctk.LEFT, padx=5)
 
             self.progress_bars.insert(0, (progress, frame, delete_button))  # Insert at the top
-            frame.pack(fill=tk.X, pady=2, before=self.frame.winfo_children()[-1] if self.frame.winfo_children() else None)
+            frame.pack(fill=ctk.X, pady=2, before=self.frame.winfo_children()[-1] if self.frame.winfo_children() else None)
 
             print("Starting tracker for", element.path)
             threading.Thread(target=self.fill_progress, args=(progress, element.path, frame, delete_button), daemon=True).start()
@@ -94,11 +97,11 @@ class ProgressBarApp:
 
             print("Percent filled:", percent_filled, path)
             if percent_filled >= 99.9:
-                self.root.after(0, progress.config, { "value" : 100 })
+                self.root.after(0, progress.configure, { "value" : 100 })
                 print("Finished", path)
                 break
             else:
-                self.root.after(0, progress.config, { "value" : percent_filled })                
+                self.root.after(0, progress.configure, { "value" : percent_filled })                
                 time.sleep(0.5)
 
             # check for stuck downloads #
@@ -108,7 +111,7 @@ class ProgressBarApp:
             else:
                 same_size_count = 0
             if same_size_count > 100:
-                self.root.after(0, delete_button.config, {"state": tk.NORMAL, "text": "Failed - Delete file manually!"})
+                self.root.after(0, delete_button.configure, {"state": ctk.NORMAL, "text": "Failed - Delete file manually!"})
                 self.progress_bars.append((progress, frame, path, delete_button))
                 self.update_delete_all_button()
                 statekeeper.log_end_download(path)
@@ -117,7 +120,7 @@ class ProgressBarApp:
             prev_precent = percent_filled
 
         # handle finished download #
-        self.root.after(0, delete_button.config, {"state": tk.NORMAL})
+        self.root.after(0, delete_button.configure, {"state": ctk.NORMAL})
         self.progress_bars.append((progress, frame, path, delete_button))
         self.update_delete_all_button()
 
@@ -134,9 +137,9 @@ class ProgressBarApp:
 
     def update_delete_all_button(self):
         if self.progress_bars:
-            self.delete_all_button.config(state=tk.NORMAL)
+            self.delete_all_button.configure(state=ctk.NORMAL)
         else:
-            self.delete_all_button.config(state=tk.DISABLED)
+            self.delete_all_button.configure(state=ctk.DISABLED)
 
     def on_close(self):
         self.running = False

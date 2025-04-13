@@ -191,13 +191,15 @@ def load_main():
     if not infowidget_window:
         infowidget_window = infowidget.ProgressBarApp(app, data_backend=db)
 
+    infowidget_window.root.grid(row=1, column=0, sticky="n")
+
     # navbar should not expand when window is resized
     app.grid_rowconfigure(0, weight=0)
     # buttongrid (scrollable frame) should expand when window is resized
     app.grid_rowconfigure(1, weight=1)
-    app.grid_columnconfigure(0, weight=1)
+    app.grid_columnconfigure(1, weight=1)
     # place scrollable frame
-    scrollable_frame.grid(row=1, column=0, sticky="nsew", columnspan=2)
+    scrollable_frame.grid(row=1, column=1, sticky="nsew", columnspan=2)
 
 
     # create tiles from meta files #
@@ -242,7 +244,7 @@ def load_details(app, software):
     global details_elements
 
     app.title("Lan Vault: {}".format(software.title))
-    details_elements = client_details.create_details_page(app, software, switch_to_main)
+    details_elements = client_details.create_details_page(app, software, switch_to_main, infowidget_window)
 
 def create_main_window_tile(software, parent):
     '''Create the main window tile'''
@@ -294,7 +296,7 @@ def update_button_positions(event=None):
         scrollable_frame.configure(width=app.winfo_width(), height=app.winfo_height())
 
     # Calculate the number of columns based on the current width of the window #
-    num_columns = app.winfo_width() // 201  # Adjust 100 as needed for button width
+    num_columns = app.winfo_width() // 301  # Adjust 100 as needed for button width
 
     # window became too small #
     if num_columns == 0:
@@ -312,7 +314,8 @@ def update_button_positions(event=None):
             continue
         else:
             DOWNSHIFT = 1 # FIXME make real navbar
-            button.grid(row=(i // num_columns)+ DOWNSHIFT, column=i % num_columns, sticky="we")
+            RIGHTSHIFT = 1 # first column for loading stuff
+            button.grid(row=(i // num_columns)+ DOWNSHIFT, column=i % num_columns + RIGHTSHIFT, sticky="we")
 
 
 if __name__ == "__main__":
