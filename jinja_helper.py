@@ -11,6 +11,7 @@ def render_path(path, install_location, game_directory,):
     result_path = path[:-len(".j2")]
 
     # prepare template #
+    print("JINJA-> cwd: ", os.getcwd(), "path:", path)
     input_content = ""
     with open(path, encoding="utf-16") as f:
         input_content = f.read()
