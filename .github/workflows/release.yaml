@@ -2,8 +2,8 @@ name: Build and Release EXE
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -22,9 +22,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller
+          pip install -r requirements.txt
 
       - name: Build EXE
-        run: pyinstaller client.py
+        run: pyinstaller -F client.py
 
       - name: Archive EXE
         run: Compress-Archive -Path dist\ -DestinationPath release.zip
@@ -32,4 +33,4 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create ${{ github.ref_name }} "release.zip" --generate-notes --title "v-${{ github.ref_name }}"
+        run: gh release create ${{ github.ref_name }} "release.zip" --generate-notes --title "release-${{ github.ref_name }}"
