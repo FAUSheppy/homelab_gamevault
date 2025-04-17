@@ -25,7 +25,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build EXE
-        run: pyinstaller -F client.py
+        run: pyinstaller client.py
 
       - name: Archive EXE
         run: Compress-Archive -Path dist\ -DestinationPath release.zip
