@@ -4,4 +4,4 @@ customtkinter
 tqdm
 Jinja2
 pyyaml
-pywin32==<version>; platform_system=="Windows"
+pywin32==306; platform_system=="Windows"
