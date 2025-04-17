@@ -320,6 +320,8 @@ def update_button_positions(event=None):
 
 if __name__ == "__main__":
 
+    # run updater #
+
     pgw = pgwrapper.ProgressBarWrapper()
     pgw.new(app)
 
