@@ -5,3 +5,4 @@ tqdm
 Jinja2
 pyyaml
 pywin32==306; platform_system=="Windows"
+requests
