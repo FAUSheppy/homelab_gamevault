@@ -27,6 +27,12 @@ jobs:
       - name: Build EXE
         run: pyinstaller client.py
 
+      - name: Copy helper scripts
+        run: |
+          cp .\dist\run.bat .\dist\client\
+          cp .\dist\run.ps1 .\dist\client\
+          cp .\windows_run_as_admin.ps1 .\dist\client\
+
       - name: Archive EXE
         run: Compress-Archive -Path dist\ -DestinationPath release.zip
 
@@ -34,3 +40,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release create ${{ github.ref_name }} "release.zip" --generate-notes --title "release-${{ github.ref_name }}"
+
