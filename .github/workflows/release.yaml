@@ -29,11 +29,11 @@ jobs:
       - name: Archive EXE
         run: Compress-Archive -Path dist\ -DestinationPath release.zip
 
-    - name: Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: >-
-        gh release create ${{ github.ref_name }}
-          "release.zip"
-          --generate-notes
-          --title "v-${{ github.ref_name }}"
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          gh release create ${{ github.ref_name }}
+            "release.zip"
+            --generate-notes
+            --title "v-${{ github.ref_name }}"
