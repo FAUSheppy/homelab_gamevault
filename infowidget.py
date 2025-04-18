@@ -86,7 +86,7 @@ class ProgressBarApp:
                 return
 
             try:
-                percent_filled = statekeeper.get_percent_filled(path)
+                percent_filled = statekeeper.get_percent_filled(path, self.data_backend.auth)
             except OSError as e:
                 fail_count += 1
                 if fail_count > 6:
