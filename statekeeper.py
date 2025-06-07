@@ -41,27 +41,45 @@ def _download(url, path):
 
         raise AssertionError("Non-200 Response for:", url, path, response.status_code, response.text)
 
-def log_begin_download(path, local_path, url):
+def log_begin_download(path, local_path, url, type="download", start_size=-1):
 
+    if type == "extraction":
+        print("Extraction path:", path)
+    else:
+        print("Download path", path)
+    
     session = db.session()
-    print("Download path", path)
-    path_exists = session.query(Download).filter(and_(Download.path==path, Download.finished==False)).first()
+    path_exists = session.query(Download).filter(and_(Download.path==path, Download.finished==False, Download.type==type)).first()
+
     if path_exists and False: # TODO FIX THIS
         print("DAFUG", path_exists)
         print("WTF", path_exists.path)
         raise AssertionError("ERROR: {} is already downloading.".format(path))
     else:
         print("Adding to download log:", path)
-        session.merge(Download(path=path, size=-1, type="download", local_path=local_path, url=url, finished=False))
+        session.merge(Download(path=path, size=start_size, type=type, local_path=local_path, url=url, finished=False, count=1))
         session.commit()
 
     db.close_session()
 
-def log_end_download(path):
+def set_extraction_status(path, count):
+
+    session = db.session()
+    obj = session.query(Download).filter(and_(Download.path==path, Download.type=="extraction")).first()
+    if not obj:
+        print("ERROR: {} is not currently extraction, cannot set status.".format(path))
+    else:
+        obj.count = count
+        session.merge(obj)
+        session.commit()
+
+    db.close_session()
+
+def log_end_download(path, type="download"):
 
     print("Downlod end logged", path)
     session = db.session()
-    obj = session.query(Download).filter(Download.path==path).first()
+    obj = session.query(Download).filter(and_(Download.path==path, Download.type==type)).first()
     if not obj:
         raise AssertionError("ERROR: {} is not downloading/cannot remove.".format(path))
     else:
@@ -100,8 +118,16 @@ def get_percent_filled(path):
 
     session = db.session()
     obj = session.query(Download).filter(Download.path==path, Download.finished==False).first()
+    
+    if not obj:
+        return 100
+
+    if obj.type == "extraction":
+        return obj.count / obj.size * 100
+
     if not obj:
         return 100 # means its finished
+
     size = _bytes_to_mb(os.stat(obj.local_path).st_size)
     total_size = get_download_size(obj.path)
     session.close()
