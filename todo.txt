@@ -1,7 +1,5 @@
 # important
 ## downloaded file hash sum check
-## apply custom tkinter look to pg window & move pg window to better relativ start location so it's no longer blocking the back button by default
-## zip extraction progress
 ## fix initial startup pictures not loading
 ## implement flush download cache button
 ## fix Call of duty installation chain
