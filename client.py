@@ -359,10 +359,11 @@ if __name__ == "__main__":
         elif backend_type == "HTTP/HTTPS":
             server = config_loaded["Server/Path:"]
             remote_root_dir = None
-            if not server.startswith("http://") or "https://":
+            if not any(server.startswith(s) for s in ["http://", "https://"]):
                 server = "http://" + server
-            if not ":" in server.split("://")[1]:
-                server = server + ":5000"
+            #if not ":" in server.split("://")[1]:
+            #    server = server + ":5000"
+            print(server)
         elif backend_type == "Local Filesystem":
             remote_root_dir = config_loaded["Server/Path:"]
             server = None
@@ -374,7 +375,8 @@ if __name__ == "__main__":
 
         # add db backend #
         if backend_type == "HTTP/HTTPS":
-            db = data_backend.HTTP(None, None, install_dir, remote_root_dir="./", server=server, progress_bar_wrapper=pgw,
+            db = data_backend.HTTP(user, password, install_dir, 
+                                    remote_root_dir="./", server=server, progress_bar_wrapper=pgw,
                                     tkinter_root=app, hide_above_age=hide_above_age)
         elif backend_type == "FTP/FTPS":
             db = data_backend.FTP(user, password, install_dir, server=server,

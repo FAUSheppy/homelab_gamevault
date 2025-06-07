@@ -8,10 +8,10 @@ from sqlalchemy import or_, and_
 def _bytes_to_mb(size):
     return size / (1024*1024)
 
-def add_to_download_queue(url, path):
+def add_to_download_queue(url, path, auth):
     '''The download is added to the global queue and downloaded eventually'''
     #_download(url, path)
-    thread = threading.Thread(target=_download, args=(url, path))
+    thread = threading.Thread(target=_download, args=(url, path, auth))
     thread.start()
 
 def add_to_task_queue(task):
@@ -21,9 +21,9 @@ def add_to_task_queue(task):
     thread.start()
     #task()
 
-def _download(url, path):
+def _download(url, path, auth):
 
-    response = requests.get(url + "?path=" + path, stream=True)
+    response = requests.get(url + "?path=" + path, stream=True, auth=auth)
 
     # Check if the request was successful
     if response.status_code == 200:
@@ -90,7 +90,7 @@ def log_end_download(path, type="download"):
 
     db.close_session()
 
-def get_download_size(path):
+def get_download_size(path, auth):
 
     session = db.session()
     obj = session.query(Download).filter(Download.path==path).first()
@@ -103,7 +103,7 @@ def get_download_size(path):
         return obj.size
 
     # query size #
-    r = requests.get(obj.url, params={"path": path, "info": 1})
+    r = requests.get(obj.url, params={"path": path, "info": 1}, auth=auth)
     r.raise_for_status()
     
     size = r.json()["size"]
@@ -114,7 +114,7 @@ def get_download_size(path):
 
     return size
 
-def get_percent_filled(path):
+def get_percent_filled(path, auth):
 
     session = db.session()
     obj = session.query(Download).filter(Download.path==path, Download.finished==False).first()
@@ -129,7 +129,7 @@ def get_percent_filled(path):
         return 100 # means its finished
 
     size = _bytes_to_mb(os.stat(obj.local_path).st_size)
-    total_size = get_download_size(obj.path)
+    total_size = get_download_size(obj.path, auth)
     session.close()
 
     if total_size == 0:

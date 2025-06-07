@@ -20,6 +20,7 @@ class DataBackend:
 
         self.user = user
         self.password = password
+        self.auth = (self.user, self.password)
         self.remote_root_dir = remote_root_dir
         self.server = server
         self.install_dir = install_dir
@@ -92,6 +93,7 @@ class LocalFS(DataBackend):
                 meta_info_list.append(software.Software(meta_file, self, self.progress_bar_wrapper))
 
         return list(filter(lambda x: not x.invalid, meta_info_list))
+
 class HTTP(DataBackend):
 
     paths_listed = {}
@@ -165,7 +167,7 @@ class HTTP(DataBackend):
 
                 # this is with streaming
                 chunk_size = 1024 * 1024  * 5 # 5MB
-                r = requests.get(self._get_url(), params={"path": path, "as_string": True}, stream=True)
+                r = requests.get(self._get_url(), params={"path": path, "as_string": True}, stream=True, auth=(self.user, self.password))
                 r.raise_for_status()
 
                 if path.endswith(".txt"):
@@ -197,7 +199,7 @@ class HTTP(DataBackend):
 
             else:
                 print("Async Requested for:", local_file)
-                statekeeper.add_to_download_queue(self._get_url(), path)
+                statekeeper.add_to_download_queue(self._get_url(), path, auth=(self.user, self.password))
                 return local_file
 
         elif return_content:
@@ -220,7 +222,7 @@ class HTTP(DataBackend):
             paths = self.paths_listed[fullpath]
         else:
 
-            r = requests.get(self._get_url(), params={ "path" : path })
+            r = requests.get(self._get_url(), params={ "path" : path }, auth=(self.user, self.password))
             r.raise_for_status()
             #print(r, r.status_code, r.content)
             paths = r.json()["contents"]
