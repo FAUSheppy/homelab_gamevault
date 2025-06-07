@@ -11,6 +11,8 @@ import imagetools
 import webbrowser
 import statekeeper
 import infowidget
+import requests
+import tkinter
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
@@ -389,5 +391,9 @@ if __name__ == "__main__":
     app.update()
 
     # fill and run app #
-    load_main() # TODO add button to reopen config # TODO add button to purge cache/purge cache window # TODO show game size on remote
+    try:
+        load_main() # TODO add button to reopen config # TODO add button to purge cache/purge cache window # TODO show game size on remote
+    except requests.exceptions.ConnectionError as e:
+        app.withdraw()
+        tkinter.messagebox.showerror("There was a connection problem", str(e))
     app.mainloop()

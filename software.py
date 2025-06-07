@@ -96,25 +96,27 @@ class Software:
 
         os.makedirs(software_path, exist_ok=True)
 
+        # beginn progress tracking #
         with zipfile.ZipFile(cache_src, 'r') as zip_ref:
 
+            statekeeper.log_begin_download(local_path=cache_src, path=cache_src, url=None, type="extraction", start_size=len(zip_ref.infolist()))
             total_count = zip_ref.infolist()
             count = 0
             for member in tqdm.tqdm(total_count, desc='Extracting '):
                 try:
                     zip_ref.extract(member, software_path)
                     count += 1
-                    #self.progress_bar_wrapper.get_pb().set(count/len(total_count))
-                    #self.progress_bar_wrapper.get_pb().update_idletasks()
-                    #self.progress_bar_wrapper.set_text(
-                    #                text="Extracting: {:.2f}%".format(count/len(total_count)*100))
+
+                    # update progress #
+                    statekeeper.set_extraction_status(cache_src, count)
+
+
                 except zipfile.error as e:
                     print(e)
                     pass # TODO ???
-            #zip_ref.extractall(software_path)
-
-        #self.progress_bar_wrapper.set_text(text="Loading..")
-        #self.progress_bar_wrapper.update()
+        
+        # finish extraction tracking #
+        statekeeper.log_end_download(cache_src, type="extraction")
 
     def install_async(self):
 

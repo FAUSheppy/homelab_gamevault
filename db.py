@@ -15,6 +15,7 @@ class Download(Base):
     local_path = Column(String)
     url = Column(String)
     size = Column(Integer)
+    count = Column(Integer) # extraction only
     type = Column(String)
     finished = Column(Boolean)
 
