@@ -184,8 +184,10 @@ class Software:
                     s.install()
 
         # run installer if set #
+        print("self.installer", self.installer)
         if self.installer:
             installer_path = os.path.join(self.backend.install_dir,  self.title, self.installer)
+            print("installer path in if", installer_path)
             if os.name != "nt" and not os.path.isabs(installer_path):
                 # need abs path for wine #
                 installer_path = os.path.join(os.getcwd(), installer_path)
@@ -228,6 +230,9 @@ class Software:
 
         if self.run_exe:
             if os.name == "nt" or not ".lnk" in self.run_exe:
-                localaction.run_exe(os.path.join(self.backend.install_dir, self.title, self.run_exe))
+                if self.run_exe.startswith("%") or self.run_exe[1] == ":":
+                    localaction.run_exe(self.run_exe)
+                else:
+                    localaction.run_exe(os.path.join(self.backend.install_dir, self.title, self.run_exe))
             else:
                 localaction.run_exe(self.run_exe)

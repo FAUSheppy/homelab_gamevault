@@ -2,6 +2,8 @@ import subprocess
 import sys
 import os
 import json
+import win32com.client
+import pythoncom
 
 # windows imports #
 if os.name == "nt":
@@ -43,6 +45,19 @@ def resolve_lnk(lnk_file_path):
     else:
         return lnk_file_path # not required on linux
 
+def substitute_win_paths(path):
+
+    pythoncom.CoInitialize()  
+    shell = win32com.client.Dispatch("WScript.Shell")
+    common_programs = shell.SpecialFolders("AllUsersPrograms")
+    path = path.replace("%ProgramData%", common_programs)
+    return path
+
+def check_substitute_path_exists(path):
+
+    if "%" in path:
+        return os.path.isfile(substitute_win_paths(path))
+
 def run_exe(path, synchronous=False):
     '''Launches a given software'''
 
@@ -65,13 +80,23 @@ def run_exe(path, synchronous=False):
     if synchronous:
         raise NotImplementedError("SYNC not yet implemented")
 
+    print("Raw paths:", paths)
+
+    # substitute program data #
+    paths = [ substitute_win_paths(p) for p in paths ]
+
+    # substituted paths #
+    print("Subs paths:", paths)
+
+    # resolve links #
     paths = [resolve_lnk(p) if p.endswith(".lnk") else p for p in paths]
 
-    print("Executing:", paths)
+    print("Executing prepared:", paths)
 
     try:
         if paths[0].endswith(".reg"):
             raise OSError("WinError 740")
+        path = paths[0].replace("\\\\", "\\")
         subprocess.Popen(path, cwd=os.path.dirname(paths[0])) # TODO fix this BS
     except OSError as e:
         if "WinError 740" in str(e):

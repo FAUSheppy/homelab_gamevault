@@ -4,6 +4,7 @@ import customtkinter
 import imagetools
 import os
 import statekeeper
+import localaction
 
 def show_large_picture(app, path):
     '''Show a full-window version of the clicked picture'''
@@ -159,7 +160,8 @@ def create_details_page(app, software, backswitch_function, infowidget_window):
     # install button #
     print(software.run_exe)
     print(os.path.join(software.backend.install_dir, software.run_exe or ""))
-    if not software.run_exe or not (os.path.isfile(software.run_exe) 
+    if not software.run_exe or not (os.path.isfile(software.run_exe)
+            or localaction.check_substitute_path_exists(software.run_exe)
             or os.path.isfile(os.path.join(software.backend.install_dir, software.title, software.run_exe))):
         run_button.configure(state=tkinter.DISABLED)
         run_button.configure(fg_color="gray")
