@@ -28,7 +28,7 @@ jobs:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASS }}
       -
-        name: Build and push async-icinga image
+        name: Build and push gamevault server
         uses: docker/build-push-action@v3
         with:
           context: server
